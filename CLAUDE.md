@@ -108,26 +108,37 @@ All loaded via Google Fonts `@import` inside inline `<style>` tags.
 
 File: `.env.local`
 ```bash
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url        # ⚠️ NOT SET — user must fill
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key  # ⚠️ NOT SET — user must fill
+NEXT_PUBLIC_SUPABASE_URL=https://jzjyzmizjvlgmsaazfcc.supabase.co   # ✅ SET
+NEXT_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_h8zqxSKFpM6GTOOOz-NrVA_OFxW6pDk  # ✅ SET
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_h8zqxSKFpM6GTOOOz-NrVA_OFxW6pDk  # ✅ SET
 NEXT_PUBLIC_SITE_URL=https://j2z.com
 ```
 
-Same variables must be added in Vercel dashboard → Project Settings → Environment Variables.
+⚠️ Same variables must still be added in Vercel dashboard → Project Settings → Environment Variables.
 
 ---
 
 ## Supabase Setup Status
 
-**Current state: NOT configured** — user has not yet created a Supabase project.
+**Current state: CREDENTIALS CONFIGURED — schema not yet applied**
 
-### What needs to be done (in order):
-1. User goes to https://supabase.com → creates a new project
-2. Copies `Project URL` and `anon public` key → pastes into `.env.local`
-3. Goes to SQL Editor → pastes `supabase/schema.sql` → runs it
-4. Enables Auth providers: Email/Password + Google OAuth
-5. Adds redirect URL in Supabase Auth settings: `https://j2z.com/auth/callback` and `https://j2z-zeta.vercel.app/auth/callback`
-6. Adds the same env vars to Vercel
+- Project URL: `https://jzjyzmizjvlgmsaazfcc.supabase.co` ✅
+- Anon key: set in `.env.local` ✅ (also stored as `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`)
+- Tables: ❌ NOT created — schema.sql not yet run
+- Auth providers: ❌ NOT configured
+- Vercel env vars: ❌ NOT added
+
+### What still needs to be done (in order):
+1. ✅ Created Supabase project
+2. ✅ Filled `.env.local` with real URL and key
+3. ❌ **Run `supabase/schema.sql`** in Supabase SQL Editor
+4. ❌ Enable Auth providers: Email/Password + Google OAuth
+5. ❌ Add redirect URLs in Supabase Auth settings: `https://j2z.com/auth/callback` and `https://j2z-zeta.vercel.app/auth/callback`
+6. ❌ Add env vars to Vercel: `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+
+### Note on key naming:
+Supabase now calls the anon key a "Publishable Key" (`sb_publishable_...`).
+In `.env.local` it is stored under BOTH `NEXT_PUBLIC_SUPABASE_ANON_KEY` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` so all code works.
 
 ### Schema summary (8 tables):
 - `profiles` — extends auth.users, auto-created via trigger on signup
