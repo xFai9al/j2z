@@ -13,14 +13,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid URL' }, { status: 400 })
   }
 
-  const customSlug = body.customSlug?.trim().replace(/[^a-zA-Z0-9-_]/g, '')
+  const rawSlug = (body.slug ?? body.customSlug ?? '').trim().replace(/[^a-zA-Z0-9-_]/g, '')
   const supabase = createClient()
 
-  if (customSlug) {
+  if (rawSlug) {
     const { data: existing } = await supabase
       .from('links')
       .select('id')
-      .eq('slug', customSlug)
+      .eq('slug', rawSlug)
       .maybeSingle()
 
     if (existing) {
@@ -28,10 +28,14 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  const slug = customSlug || generateSlug()
+  const slug = rawSlug || generateSlug()
+
+  const { data: sessionData } = await supabase.auth.getUser()
+  const userId = sessionData?.user?.id ?? null
+
   const { data, error } = await supabase
     .from('links')
-    .insert({ slug, original_url: originalUrl })
+    .insert({ slug, destination_url: originalUrl, user_id: userId })
     .select()
     .single()
 
@@ -45,8 +49,9 @@ export async function POST(req: NextRequest) {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
 
   return NextResponse.json({
+    id: data.id,
     slug: data.slug,
-    original_url: data.original_url,
+    destination_url: data.destination_url,
     short_url: `${siteUrl}/${data.slug}`,
     clicks: data.clicks,
     created_at: data.created_at,
