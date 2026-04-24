@@ -124,14 +124,15 @@ NEXT_PUBLIC_SITE_URL=https://j2z.com
 
 - Project URL: `https://jzjyzmizjvlgmsaazfcc.supabase.co` ✅
 - Anon key: set in `.env.local` ✅ (also stored as `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`)
-- Tables: ❌ NOT created — schema.sql not yet run
+- Tables: ✅ ALL 8 TABLES CREATED (links, profiles, qr_codes, clicks, bio_pages, bio_links, anon_usage, url_blocklist)
+- url_blocklist: ✅ 8 blocked patterns seeded (porn/gambling domains + keywords)
 - Auth providers: ❌ NOT configured
 - Vercel env vars: ❌ NOT added
 
 ### What still needs to be done (in order):
 1. ✅ Created Supabase project
 2. ✅ Filled `.env.local` with real URL and key
-3. ❌ **Run `supabase/schema.sql`** in Supabase SQL Editor
+3. ✅ Ran `supabase/schema.sql` — all tables verified working
 4. ❌ Enable Auth providers: Email/Password + Google OAuth
 5. ❌ Add redirect URLs in Supabase Auth settings: `https://j2z.com/auth/callback` and `https://j2z-zeta.vercel.app/auth/callback`
 6. ❌ Add env vars to Vercel: `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`
