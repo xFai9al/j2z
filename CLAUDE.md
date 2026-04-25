@@ -214,6 +214,19 @@ In `.env.local` it is stored under BOTH `NEXT_PUBLIC_SUPABASE_ANON_KEY` and `NEX
 - ✅ Updated `src/app/[slug]/route.ts` — now checks both `links` AND `qr_codes` tables + increments scans
 - ✅ Committed and pushed (commit `3418dfb`)
 
+### Session 5 — Landing Page Design Sync + Bio Page (P4)
+- ✅ Synced `src/app/page.tsx` with original `j2z-landing-v4.jsx` design (10 diffs fixed)
+  - Badge `◈→✦`, bio avatar `👤→🚀`, footer restored About+Blog links
+  - CTA decorative circles (`::before`/`::after`), shadow CSS variables
+  - `consent a:hover`, canvas `imageRendering:pixelated`, download `↓→⬇`, `✗→✕`, `-webkit-backdrop-filter`
+- ✅ Built bio page (Priority 4) — 3 parts:
+  - `src/app/api/bio/route.ts` — GET/POST/PATCH bio page
+  - `src/app/api/bio/links/route.ts` — POST add bio link
+  - `src/app/api/bio/links/[id]/route.ts` — PATCH/DELETE bio link
+  - Dashboard bio tab: create page flow, profile editor, links manager, publish toggle, live preview
+  - `src/app/u/[username]/page.tsx` — public server-rendered bio page, 404 if unpublished
+- ✅ Committed and pushed (commits `396fea3`, `0f9923f`)
+
 ---
 
 ## What's Next (Pending Work)
@@ -229,10 +242,7 @@ In `.env.local` it is stored under BOTH `NEXT_PUBLIC_SUPABASE_ANON_KEY` and `NEX
 
 ### Priority 3 — API routes ✅ DONE (Session 4)
 
-### Priority 4 — Bio page
-- Build editor in dashboard Bio tab (save to `bio_pages` + `bio_links`)
-- Create public page `src/app/u/[username]/page.tsx`
-- Track bio page views in `clicks` table
+### Priority 4 — Bio page ✅ DONE (Session 5)
 
 ### Priority 5 — Cloudflare Worker (redirect engine)
 - Sub-50ms global redirects instead of Vercel (optional, for scale)
