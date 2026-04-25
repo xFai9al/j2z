@@ -23,6 +23,8 @@ interface QrItem {
   scans: number
   created: string
 }
+interface BioPage { id: string; username: string; display_name: string | null; bio: string | null; is_published: boolean }
+interface BioLink { id: string; title: string; url: string; sort_order: number }
 const WEEKLY = [12, 28, 19, 44, 36, 62, 48]
 const DAYS = { en: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'], ar: ['إث','ثلا','أرب','خمي','جمع','سبت','أحد'] }
 const COUNTRIES = [
@@ -89,6 +91,17 @@ const TXT = {
     empty_qr:'No QR codes yet. Create one above ↑',
     new_dest:'New destination URL',
     save:'Save',
+    bio_create_title:'Create your bio page',
+    bio_create_sub:'Choose a username to get your public page at j2z.com/username',
+    bio_username:'Username', bio_username_hint:'3–30 chars: letters, numbers, _ or -',
+    bio_display_name:'Display name', bio_tagline:'Tagline',
+    bio_create_btn:'Create page', bio_creating:'Creating...',
+    bio_profile:'Profile', bio_your_links:'Your links',
+    bio_save_profile:'Save profile', bio_saving:'Saving...',
+    bio_published:'Published', bio_unpublished:'Unpublished',
+    bio_add_link:'+ Add Link', bio_link_title:'Link title', bio_link_url:'URL (https://...)',
+    bio_no_links:'No links yet. Add one below.',
+    bio_view:'View page', bio_error:'',
   },
   ar: {
     overview:'نظرة عامة', links:'الروابط', qr:'أكواد QR', bio:'بايو لينك', analytics:'التحليلات', settings:'الإعدادات', logout:'خروج',
@@ -112,6 +125,17 @@ const TXT = {
     empty_qr:'لا توجد أكواد QR بعد. أنشئ واحداً أعلاه ↑',
     new_dest:'رابط الوجهة الجديد',
     save:'حفظ',
+    bio_create_title:'أنشئ صفحتك الشخصية',
+    bio_create_sub:'اختر اسم مستخدم للحصول على صفحتك على j2z.com/username',
+    bio_username:'اسم المستخدم', bio_username_hint:'3–30 حرفاً: حروف وأرقام و _ أو -',
+    bio_display_name:'الاسم الظاهر', bio_tagline:'النبذة',
+    bio_create_btn:'إنشاء الصفحة', bio_creating:'جارٍ الإنشاء...',
+    bio_profile:'الملف الشخصي', bio_your_links:'روابطك',
+    bio_save_profile:'حفظ الملف', bio_saving:'جارٍ الحفظ...',
+    bio_published:'منشور', bio_unpublished:'غير منشور',
+    bio_add_link:'+ إضافة رابط', bio_link_title:'عنوان الرابط', bio_link_url:'رابط (https://...)',
+    bio_no_links:'لا توجد روابط بعد. أضف رابطاً أدناه.',
+    bio_view:'عرض الصفحة', bio_error:'',
   }
 }
 
@@ -137,6 +161,19 @@ export default function Dashboard() {
   const [editQrId, setEditQrId] = useState<string | null>(null)
   const [editDest, setEditDest] = useState('')
   const [saved, setSaved] = useState(false)
+  const [bioPage, setBioPage] = useState<BioPage | null>(null)
+  const [bioLinks, setBioLinks] = useState<BioLink[]>([])
+  const [bioLoaded, setBioLoaded] = useState(false)
+  const [bioForm, setBioForm] = useState({ username: '', display_name: '', bio: '' })
+  const [bioSaving, setBioSaving] = useState(false)
+  const [bioSaved, setBioSaved] = useState(false)
+  const [bioCreating, setBioCreating] = useState(false)
+  const [bioError, setBioError] = useState('')
+  const [newBioTitle, setNewBioTitle] = useState('')
+  const [newBioUrl, setNewBioUrl] = useState('')
+  const [editBioLinkId, setEditBioLinkId] = useState<string | null>(null)
+  const [editBioLinkTitle, setEditBioLinkTitle] = useState('')
+  const [editBioLinkUrl, setEditBioLinkUrl] = useState('')
   const qrRefs = useRef<Record<string, HTMLCanvasElement | null>>({})
   const t = TXT[lang]
   const dir = lang === 'ar' ? 'rtl' : 'ltr'
@@ -153,6 +190,17 @@ export default function Dashboard() {
     const sb = getSupabase()
     const { data } = await sb.from('qr_codes').select('id,slug,destination_url,scans,created_at').eq('user_id', uid).eq('is_active', true).order('created_at', { ascending: false })
     if (data) setQrs(data.map(q => ({ id: q.id, slug: q.slug, url: q.destination_url, scans: q.scans ?? 0, created: q.created_at?.slice(0, 10) ?? '' })))
+  }, [])
+
+  const fetchBio = useCallback(async () => {
+    const res = await fetch('/api/bio')
+    const data = await res.json()
+    if (data.page) {
+      setBioPage({ id: data.page.id, username: data.page.username, display_name: data.page.display_name, bio: data.page.bio, is_published: data.page.is_published })
+      setBioLinks(((data.page.bio_links ?? []) as (BioLink & { is_active: boolean })[]).filter(l => l.is_active).sort((a, b) => a.sort_order - b.sort_order))
+      setBioForm({ username: data.page.username, display_name: data.page.display_name ?? '', bio: data.page.bio ?? '' })
+    }
+    setBioLoaded(true)
   }, [])
 
   useEffect(() => {
@@ -187,7 +235,8 @@ export default function Dashboard() {
         })
       }, 50)
     }
-  }, [tab, qrs, drawQR])
+    if (tab === 'bio' && !bioLoaded) fetchBio()
+  }, [tab, qrs, drawQR, bioLoaded, fetchBio])
 
   const copyLink = (slug: string, id: string) => {
     navigator.clipboard.writeText(`j2z.com/${slug}`).catch(() => {})
@@ -274,6 +323,86 @@ export default function Dashboard() {
   const handleLogout = async () => {
     await getSupabase().auth.signOut()
     router.replace('/auth')
+  }
+
+  const createBioPage = async () => {
+    const { username, display_name, bio } = bioForm
+    if (!username.trim()) return
+    setBioCreating(true)
+    setBioError('')
+    const res = await fetch('/api/bio', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: username.trim(), display_name: display_name.trim() || null, bio: bio.trim() || null }),
+    })
+    const data = await res.json()
+    if (res.ok) {
+      setBioPage(data.page)
+      setBioLinks([])
+    } else {
+      setBioError(data.error ?? 'Error creating page')
+    }
+    setBioCreating(false)
+  }
+
+  const saveBioProfile = async () => {
+    if (!bioPage) return
+    setBioSaving(true)
+    const res = await fetch('/api/bio', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ display_name: bioForm.display_name.trim() || null, bio: bioForm.bio.trim() || null }),
+    })
+    if (res.ok) {
+      const data = await res.json()
+      setBioPage(p => p ? { ...p, display_name: data.page.display_name, bio: data.page.bio } : p)
+      setBioSaved(true)
+      setTimeout(() => setBioSaved(false), 2000)
+    }
+    setBioSaving(false)
+  }
+
+  const toggleBioPublish = async () => {
+    if (!bioPage) return
+    const newVal = !bioPage.is_published
+    setBioPage(p => p ? { ...p, is_published: newVal } : p)
+    await fetch('/api/bio', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ is_published: newVal }),
+    })
+  }
+
+  const addBioLink = async () => {
+    const title = newBioTitle.trim()
+    const url = newBioUrl.trim()
+    if (!title || !url) return
+    const res = await fetch('/api/bio/links', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title, url }),
+    })
+    if (res.ok) {
+      const data = await res.json()
+      setBioLinks(p => [...p, data.link])
+      setNewBioTitle('')
+      setNewBioUrl('')
+    }
+  }
+
+  const deleteBioLink = async (id: string) => {
+    setBioLinks(p => p.filter(l => l.id !== id))
+    await fetch(`/api/bio/links/${id}`, { method: 'DELETE' })
+  }
+
+  const saveBioLink = async (id: string) => {
+    setBioLinks(p => p.map(l => l.id === id ? { ...l, title: editBioLinkTitle, url: editBioLinkUrl } : l))
+    setEditBioLinkId(null)
+    await fetch(`/api/bio/links/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: editBioLinkTitle, url: editBioLinkUrl }),
+    })
   }
 
   const totalClicks = links.reduce((s, l) => s + l.clicks, 0)
@@ -436,6 +565,31 @@ body { font-family: 'Space Grotesk', 'Tajawal', sans-serif; -webkit-font-smoothi
 .bio-lbtn:hover { background:rgba(255,255,255,.18); }
 .bio-edit { margin-top:14px; padding:10px 20px; background:#E8765C; color:white; border:none; border-radius:9px; font-size:13.5px; font-weight:700; cursor:pointer; font-family:inherit; width:100%; position:relative; z-index:1; transition:all .15s; }
 .bio-edit:hover { background:#D45A3F; }
+.tool-btn { padding:12px 22px; background:#E8765C; color:white; border:none; border-radius:10px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; transition:all .15s; white-space:nowrap; }
+.tool-btn:hover { background:#D45A3F; transform:translateY(-1px); }
+.tool-btn:disabled { background:var(--ink3); cursor:not-allowed; transform:none; }
+.bio-create-box { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:24px; max-width:520px; margin:0 auto; text-align:center; }
+.bio-create-box h2 { font-family:'Cal Sans',sans-serif; font-size:20px; font-weight:700; margin-bottom:8px; color:var(--ink); }
+.bio-create-box p { font-size:13.5px; color:var(--ink2); margin-bottom:20px; line-height:1.5; }
+.bio-field { display:flex; flex-direction:column; gap:4px; margin-bottom:12px; text-align:left; }
+[dir=rtl] .bio-field { text-align:right; }
+.bio-field label { font-size:11.5px; font-weight:600; color:var(--ink2); text-transform:uppercase; letter-spacing:.5px; }
+.bio-field-hint { font-size:11px; color:var(--ink3); margin-top:2px; }
+.bio-toggle-row { display:flex; align-items:center; justify-content:space-between; background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:11px 14px; }
+.bio-toggle-label { font-size:13px; font-weight:600; color:var(--ink); }
+.bio-toggle { position:relative; width:40px; height:22px; cursor:pointer; }
+.bio-toggle input { opacity:0; width:0; height:0; position:absolute; }
+.bio-toggle-track { position:absolute; inset:0; background:var(--border2); border-radius:100px; transition:background .2s; }
+.bio-toggle input:checked ~ .bio-toggle-track { background:#8FA68E; }
+.bio-toggle-thumb { position:absolute; top:3px; left:3px; width:16px; height:16px; background:white; border-radius:50%; transition:transform .2s; box-shadow:0 1px 3px rgba(0,0,0,.2); }
+.bio-toggle input:checked ~ .bio-toggle-thumb { transform:translateX(18px); }
+.bio-lnk-row { background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:10px 12px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.bio-lnk-title { font-size:13px; font-weight:600; color:var(--ink); flex:1; min-width:80px; }
+.bio-lnk-url { font-size:11px; color:var(--ink3); direction:ltr; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:2; min-width:80px; }
+.bio-add-row { display:flex; gap:6px; margin-top:8px; flex-wrap:wrap; }
+.bio-pub-badge { display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:700; padding:3px 9px; border-radius:100px; }
+.bio-pub-badge.on { background:#EDF1EC; color:#3E5F3C; }
+.bio-pub-badge.off { background:var(--surface2); color:var(--ink3); }
 .sett-form { display:flex; flex-direction:column; gap:16px; max-width:480px; }
 .f-lbl { font-size:12.5px; font-weight:600; color:var(--ink3); text-transform:uppercase; letter-spacing:.5px; margin-bottom:5px; }
 .f-in { width:100%; padding:11px 13px; background:var(--surface); border:1.5px solid var(--border); border-radius:10px; font-size:14px; color:var(--ink); font-family:inherit; outline:none; transition:all .15s; }
@@ -663,45 +817,139 @@ body { font-family: 'Space Grotesk', 'Tajawal', sans-serif; -webkit-font-smoothi
 
             {tab === 'bio' && <>
               <div className="pg-head"><h1 className="pg-title">{t.bio_title}</h1></div>
-              <div className="bio-grid">
-                <div className="bio-left">
-                  <div className="bio-url-row">
-                    <span className="bio-url-txt">j2z.com/{user.user_metadata?.username ?? displayName.toLowerCase().replace(/\s+/g,'')}</span>
-                    <button className={`btn-s ${copiedId === 'bio-link' ? 'ok' : ''}`} onClick={() => { navigator.clipboard.writeText(`j2z.com/${displayName.toLowerCase()}`); setCopiedId('bio-link'); setTimeout(() => setCopiedId(null), 1800); }}>{copiedId === 'bio-link' ? t.copied : t.copy}</button>
-                  </div>
-                  {[{val:'2,841', lbl:t.bio_views, ico:'👁️'},{val:'4', lbl:t.bio_links, ico:'🔗'}].map((s, i) => (
-                    <div key={i} className="bio-stat-row">
-                      <div><div className="bio-st-num">{s.val}</div><div className="bio-st-lbl">{s.lbl}</div></div>
-                      <span style={{fontSize:26}}>{s.ico}</span>
+
+              {!bioLoaded && (
+                <div style={{textAlign:'center',padding:'40px',color:'var(--ink3)'}}>...</div>
+              )}
+
+              {bioLoaded && !bioPage && (
+                <div className="bio-create-box">
+                  <h2>{t.bio_create_title}</h2>
+                  <p>{t.bio_create_sub}</p>
+                  <div className="bio-field">
+                    <label>{t.bio_username}</label>
+                    <div style={{display:'flex',alignItems:'center',gap:0,background:'var(--surface)',border:'1.5px solid var(--border)',borderRadius:10,overflow:'hidden',transition:'border-color .15s'}}>
+                      <span style={{padding:'10px 10px 10px 12px',fontSize:13,color:'var(--ink3)',whiteSpace:'nowrap',fontFamily:'monospace',direction:'ltr'}}>j2z.com/</span>
+                      <input className="t-input" style={{border:'none',borderRadius:0,flex:1,boxShadow:'none'}} placeholder="yourname" value={bioForm.username}
+                        onChange={e => setBioForm(f => ({...f, username: e.target.value.replace(/[^a-zA-Z0-9_-]/g,'').slice(0,30)}))} dir="ltr"/>
                     </div>
-                  ))}
-                  <div className="card">
-                    <div className="card-hd">{t.devices}</div>
-                    <div className="prog-list">
-                      {DEVICES.map(d => (
-                        <div key={d.en} className="prog-row">
-                          <div className="prog-info">
-                            <span className="prog-label"><span className="prog-dev-dot" style={{background:d.color}}/><span>{lang === 'en' ? d.en : d.ar}</span></span>
-                            <span className="prog-pct">{d.pct}%</span>
-                          </div>
-                          <div className="prog-track"><div className="prog-fill" style={{width:`${d.pct}%`, background:d.color}}/></div>
-                        </div>
-                      ))}
-                    </div>
+                    <span className="bio-field-hint">{t.bio_username_hint}</span>
                   </div>
+                  <div className="bio-field">
+                    <label>{t.bio_display_name}</label>
+                    <input className="t-input" placeholder={displayName} value={bioForm.display_name}
+                      onChange={e => setBioForm(f => ({...f, display_name: e.target.value}))}/>
+                  </div>
+                  <div className="bio-field">
+                    <label>{t.bio_tagline}</label>
+                    <input className="t-input" placeholder={lang==='en'?'Creator · Designer · Builder':'مبدع · مصمم · مطور'} value={bioForm.bio}
+                      onChange={e => setBioForm(f => ({...f, bio: e.target.value}))}/>
+                  </div>
+                  {bioError && <div style={{color:'#C03030',fontSize:13,marginBottom:10,padding:'8px 12px',background:'#FDEAEA',borderRadius:8}}>{bioError}</div>}
+                  <button className="tool-btn" style={{width:'100%',marginTop:4}} onClick={createBioPage} disabled={bioCreating||!bioForm.username.trim()}>
+                    {bioCreating ? t.bio_creating : t.bio_create_btn}
+                  </button>
                 </div>
-                <div className="bio-mock">
-                  <div className="bio-avi">🚀</div>
-                  <div className="bio-nm">{displayName}</div>
-                  <div className="bio-dc">{lang === 'en' ? 'Designer · Developer · Creator' : 'مصمم · مطور · مبدع'}</div>
-                  <div className="bio-links">
-                    {(lang === 'en' ? ['Latest Project','YouTube Channel','Instagram','Contact Me'] : ['أحدث مشروع','قناة اليوتيوب','إنستغرام','تواصل معي']).map((l, i) => (
-                      <button key={i} className="bio-lbtn">{l}</button>
+              )}
+
+              {bioLoaded && bioPage && (
+                <div className="bio-grid">
+                  <div className="bio-left">
+                    <div className="bio-url-row">
+                      <span className="bio-url-txt">j2z.com/u/{bioPage.username}</span>
+                      <div style={{display:'flex',gap:6}}>
+                        <button className={`btn-s ${copiedId==='bio-link'?'ok':''}`}
+                          onClick={()=>{navigator.clipboard.writeText(`j2z.com/u/${bioPage.username}`);setCopiedId('bio-link');setTimeout(()=>setCopiedId(null),1800);}}>
+                          {copiedId==='bio-link'?t.copied:t.copy}
+                        </button>
+                        <a className="btn-s" href={`/u/${bioPage.username}`} target="_blank" rel="noreferrer">{t.bio_view}</a>
+                      </div>
+                    </div>
+
+                    <div className="bio-toggle-row">
+                      <div>
+                        <div className="bio-toggle-label">{bioPage.is_published ? t.bio_published : t.bio_unpublished}</div>
+                      </div>
+                      <label className="bio-toggle">
+                        <input type="checkbox" checked={bioPage.is_published} onChange={toggleBioPublish}/>
+                        <div className="bio-toggle-track"/>
+                        <div className="bio-toggle-thumb"/>
+                      </label>
+                    </div>
+
+                    {[{val: String(bioLinks.length), lbl:t.bio_links, ico:'🔗'}].map((s, i) => (
+                      <div key={i} className="bio-stat-row">
+                        <div><div className="bio-st-num">{s.val}</div><div className="bio-st-lbl">{s.lbl}</div></div>
+                        <span style={{fontSize:26}}>{s.ico}</span>
+                      </div>
                     ))}
+
+                    <div className="card">
+                      <div className="card-hd">{t.bio_profile}</div>
+                      <div className="bio-field" style={{marginBottom:10}}>
+                        <label>{t.bio_display_name}</label>
+                        <input className="t-input" value={bioForm.display_name}
+                          onChange={e => setBioForm(f => ({...f, display_name: e.target.value}))}/>
+                      </div>
+                      <div className="bio-field" style={{marginBottom:12}}>
+                        <label>{t.bio_tagline}</label>
+                        <input className="t-input" value={bioForm.bio}
+                          onChange={e => setBioForm(f => ({...f, bio: e.target.value}))}/>
+                      </div>
+                      <button className={`btn-s ${bioSaved?'ok':''}`} onClick={saveBioProfile} disabled={bioSaving}>
+                        {bioSaved ? t.s_saved : bioSaving ? t.bio_saving : t.bio_save_profile}
+                      </button>
+                    </div>
+
+                    <div className="card">
+                      <div className="card-hd">{t.bio_your_links}</div>
+                      <div className="link-list" style={{marginBottom:12}}>
+                        {bioLinks.length === 0 && <div style={{fontSize:13,color:'var(--ink3)',textAlign:'center',padding:'12px 0'}}>{t.bio_no_links}</div>}
+                        {bioLinks.map(l => (
+                          <div key={l.id} className="bio-lnk-row">
+                            {editBioLinkId === l.id ? (
+                              <>
+                                <input className="t-input" style={{flex:1,minWidth:80}} value={editBioLinkTitle} onChange={e=>setEditBioLinkTitle(e.target.value)}/>
+                                <input className="t-input" style={{flex:2,minWidth:100}} value={editBioLinkUrl} onChange={e=>setEditBioLinkUrl(e.target.value)} dir="ltr"/>
+                                <button className="btn-s ok" onClick={()=>saveBioLink(l.id)}>{t.save}</button>
+                                <button className="btn-s" onClick={()=>setEditBioLinkId(null)}>✕</button>
+                              </>
+                            ) : (
+                              <>
+                                <div style={{flex:1,minWidth:80}}><div className="bio-lnk-title">{l.title}</div><div className="bio-lnk-url">{l.url}</div></div>
+                                <div className="acts">
+                                  <button className="btn-s" onClick={()=>{setEditBioLinkId(l.id);setEditBioLinkTitle(l.title);setEditBioLinkUrl(l.url);}}>{t.edit}</button>
+                                  <button className="btn-s rm" onClick={()=>deleteBioLink(l.id)}>{t.del}</button>
+                                </div>
+                              </>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                      <div className="bio-add-row">
+                        <input className="t-input" style={{flex:1,minWidth:100}} placeholder={t.bio_link_title} value={newBioTitle} onChange={e=>setNewBioTitle(e.target.value)}/>
+                        <input className="t-input" style={{flex:2,minWidth:120}} placeholder={t.bio_link_url} value={newBioUrl} onChange={e=>setNewBioUrl(e.target.value)} dir="ltr"/>
+                        <button className="tool-btn" style={{padding:'10px 14px',fontSize:13}} onClick={addBioLink} disabled={!newBioTitle.trim()||!newBioUrl.trim()}>{t.bio_add_link}</button>
+                      </div>
+                    </div>
                   </div>
-                  <button className="bio-edit">{t.bio_edit} →</button>
+
+                  <div className="bio-mock">
+                    <div className="bio-avi">{(bioForm.display_name || displayName)[0]?.toUpperCase() || '?'}</div>
+                    <div className="bio-nm">{bioForm.display_name || displayName}</div>
+                    <div className="bio-dc">{bioForm.bio || (lang==='en'?'Creator · Designer · Builder':'مبدع · مصمم · مطور')}</div>
+                    <div className="bio-links">
+                      {bioLinks.length === 0
+                        ? (lang==='en'?['My Project','Instagram','Contact Me']:['مشروعي','إنستغرام','تواصل معي']).map((l,i)=><div key={i} className="bio-lbtn" style={{opacity:.4}}>{l}</div>)
+                        : bioLinks.map(l=><div key={l.id} className="bio-lbtn">{l.title}</div>)
+                      }
+                    </div>
+                    <div className="bio-url-tag" style={{marginTop:14,fontFamily:'monospace',fontSize:'10.5px',color:'rgba(255,255,255,.5)'}}>
+                      j2z.com/u/<strong style={{color:'#F4A593',fontWeight:600}}>{bioPage.username}</strong>
+                    </div>
+                  </div>
                 </div>
-              </div>
+              )}
             </>}
 
             {tab === 'analytics' && <>
