@@ -28,7 +28,7 @@ export default function NotFound() {
       <head>
         <meta charSet="UTF-8"/>
         <meta name="viewport" content="width=device-width, initial-scale=1"/>
-        <style dangerouslySetInnerHTML={{__html: css}}/>
+        <style dangerouslySetInnerHTML={{__html: css}} suppressHydrationWarning/>
       </head>
       <body>
         <Link className="logo-row" href="/">

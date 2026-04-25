@@ -699,7 +699,7 @@ body { font-family: 'Space Grotesk', 'Tajawal', sans-serif; -webkit-font-smoothi
 
   if (!user) return (
     <>
-      <style>{css}</style>
+      <style dangerouslySetInnerHTML={{__html: css}} suppressHydrationWarning/>
       <div className="skel-wrap">
         <div className="skel-logo">
           <svg viewBox="0 0 60 60" width={40} height={40} fill="none">
@@ -719,7 +719,7 @@ body { font-family: 'Space Grotesk', 'Tajawal', sans-serif; -webkit-font-smoothi
 
   return (
     <>
-      <style>{css}</style>
+      <style dangerouslySetInnerHTML={{__html: css}} suppressHydrationWarning/>
       <div className="wrap" style={theme as React.CSSProperties} dir={dir}>
 
         <div className={`overlay ${menuOpen ? 'show' : ''}`} onClick={() => setMenuOpen(false)} />

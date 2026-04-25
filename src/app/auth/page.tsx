@@ -252,7 +252,7 @@ button,a{touch-action:manipulation;}
 
   return (
     <>
-      <style>{css}</style>
+      <style dangerouslySetInnerHTML={{__html: css}} suppressHydrationWarning/>
       <div className="auth-wrap" dir={dir}>
         <div className="left-panel">
           <div className="top-bar">

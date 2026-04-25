@@ -22,7 +22,7 @@ export default function Error({ error, reset }: { error: Error & { digest?: stri
 
   return (
     <>
-      <style dangerouslySetInnerHTML={{__html: css}}/>
+      <style dangerouslySetInnerHTML={{__html: css}} suppressHydrationWarning/>
       <div className="icon-wrap">
         <svg viewBox="0 0 24 24" width={32} height={32} fill="none" stroke="#E05252" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M12 2L2 19h20L12 2z"/><path d="M12 9v5"/><circle cx="12" cy="17" r=".5" fill="#E05252"/>
