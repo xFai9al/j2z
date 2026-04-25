@@ -187,7 +187,7 @@ In `.env.local` it is stored under BOTH `NEXT_PUBLIC_SUPABASE_ANON_KEY` and `NEX
   - Real QR generation with `QRCode.toCanvas`
   - Dark/light theme toggle with CSS variables
   - Bilingual EN/AR + RTL
-  - Currently uses **mock data** (MOCK_LINKS, MOCK_QRS) — real data integration pending
+  - ~~Currently uses mock data~~ → **Now uses real Supabase data** (fetches on login)
 - ✅ Ported `j2z-terms.jsx` → `src/app/terms/page.tsx` + `src/app/privacy/page.tsx`
   - Shared component: `src/app/terms/LegalContent.tsx`
   - Bilingual EN/AR, tab switching between Terms and Privacy
@@ -203,6 +203,17 @@ In `.env.local` it is stored under BOTH `NEXT_PUBLIC_SUPABASE_ANON_KEY` and `NEX
 - ✅ Fixed build: Supabase clients use fallback URLs, lazy initialization via `useRef`
 - ✅ Committed and pushed to GitHub (commit `5409c58`)
 
+### Session 4 — Real Data Integration + CRUD API Routes
+- ✅ Replaced mock data in dashboard with real Supabase queries
+  - Fetches `links` table on login: `fetchLinks(uid)` → `.from('links').select(...).eq('user_id', uid)`
+  - Fetches `qr_codes` table on login: `fetchQrs(uid)`
+  - Soft-delete (set `is_active=false`) instead of hard delete
+- ✅ Created `src/app/api/qr/route.ts` — POST creates QR code in `qr_codes` table
+- ✅ Created `src/app/api/links/[id]/route.ts` — DELETE + PATCH for links
+- ✅ Created `src/app/api/qr/[id]/route.ts` — DELETE + PATCH for QR codes
+- ✅ Updated `src/app/[slug]/route.ts` — now checks both `links` AND `qr_codes` tables + increments scans
+- ✅ Committed and pushed (commit `3418dfb`)
+
 ---
 
 ## What's Next (Pending Work)
@@ -214,18 +225,9 @@ In `.env.local` it is stored under BOTH `NEXT_PUBLIC_SUPABASE_ANON_KEY` and `NEX
 4. **Run `supabase/schema.sql`** in Supabase SQL Editor
 5. **Enable auth providers** in Supabase dashboard
 
-### Priority 2 — Replace mock data in dashboard
-- Fetch real links from `links` table: `supabase.from('links').select('*').eq('user_id', user.id)`
-- Create links via API, delete links via API
-- Fetch real QR codes from `qr_codes` table
-- Add real click counts from `clicks` table
+### Priority 2 — Replace mock data in dashboard ✅ DONE (Session 4)
 
-### Priority 3 — API routes to add
-- `POST /api/qr` — create QR code entry in `qr_codes` table
-- `DELETE /api/links/[id]` — delete a link
-- `PATCH /api/links/[id]` — edit destination URL
-- `DELETE /api/qr/[id]` — delete a QR code
-- `PATCH /api/qr/[id]` — edit QR destination
+### Priority 3 — API routes ✅ DONE (Session 4)
 
 ### Priority 4 — Bio page
 - Build editor in dashboard Bio tab (save to `bio_pages` + `bio_links`)
