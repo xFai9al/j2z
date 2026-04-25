@@ -691,9 +691,31 @@ body { font-family: 'Space Grotesk', 'Tajawal', sans-serif; -webkit-font-smoothi
 .tool-btn { padding:12px 22px; background:#E8765C; color:white; border:none; border-radius:10px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; transition:all .15s; white-space:nowrap; touch-action:manipulation; display:inline-flex; align-items:center; gap:6px; }
 .save-btn { padding:11px 22px; background:#E8765C; color:white; border:none; border-radius:10px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; align-self:flex-start; transition:all .15s; touch-action:manipulation; }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
+.skel-wrap { display:flex; flex-direction:column; min-height:100vh; background:#FBFAF7; align-items:center; justify-content:center; gap:16px; }
+.skel-logo { animation: skelPulse 1.4s ease-in-out infinite; }
+@keyframes skelPulse { 0%,100%{opacity:.4;} 50%{opacity:1;} }
+.skel-bar { height:8px; border-radius:4px; background:#E8E2D6; animation: skelPulse 1.4s ease-in-out infinite; }
 `
 
-  if (!user) return null
+  if (!user) return (
+    <>
+      <style>{css}</style>
+      <div className="skel-wrap">
+        <div className="skel-logo">
+          <svg viewBox="0 0 60 60" width={40} height={40} fill="none">
+            <rect width="60" height="60" rx="16" fill="#FBEDE8"/>
+            <rect x="28" y="16" width="5" height="20" fill="#F4A593"/>
+            <rect x="33" y="13" width="5" height="23" fill="#E8765C"/>
+            <rect x="38" y="10" width="5" height="26" fill="#D45A3F"/>
+            <path d="M43 10 L50 10 L43 18 Z" fill="#F4A593"/>
+            <path d="M12 36 L43 36 L43 48 L20 48 Q12 48 12 42 Z" fill="#D45A3F"/>
+          </svg>
+        </div>
+        <div className="skel-bar" style={{width:120,animationDelay:'.1s'}}/>
+        <div className="skel-bar" style={{width:80,animationDelay:'.2s'}}/>
+      </div>
+    </>
+  )
 
   return (
     <>
@@ -911,7 +933,11 @@ body { font-family: 'Space Grotesk', 'Tajawal', sans-serif; -webkit-font-smoothi
               <div className="pg-head"><h1 className="pg-title">{t.bio_title}</h1></div>
 
               {!bioLoaded && (
-                <div style={{textAlign:'center',padding:'40px',color:'var(--ink3)'}}>...</div>
+                <div style={{display:'flex',flexDirection:'column',gap:12,maxWidth:520}}>
+                  {[100,75,90,60].map((w,i) => (
+                    <div key={i} className="skel-bar" style={{width:`${w}%`,height:i===0?44:28,borderRadius:10,animationDelay:`${i*.08}s`}}/>
+                  ))}
+                </div>
               )}
 
               {bioLoaded && !bioPage && (
