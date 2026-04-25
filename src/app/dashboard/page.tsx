@@ -1,6 +1,6 @@
 'use client'
 export const dynamic = 'force-dynamic'
-import { useState, useRef, useEffect, useCallback } from 'react'
+import React, { useState, useRef, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import type { User } from '@supabase/supabase-js'
@@ -65,6 +65,89 @@ const QRIcon = ({ s = 18, color = '#D45A3F' }: { s?: number; color?: string }) =
     <rect x="20" y="14" width="2" height="2" fill={color}/>
     <rect x="14" y="20" width="2" height="2" fill={color}/>
     <rect x="20" y="26" width="2" height="2" fill={color}/>
+  </svg>
+)
+const IcoGrid = ({ s=15, c='currentColor' }: {s?:number;c?:string}) => (
+  <svg viewBox="0 0 20 20" width={s} height={s} fill="none" stroke={c} strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="2" y="2" width="7" height="7" rx="1.5"/><rect x="11" y="2" width="7" height="7" rx="1.5"/>
+    <rect x="2" y="11" width="7" height="7" rx="1.5"/><rect x="11" y="11" width="7" height="7" rx="1.5"/>
+  </svg>
+)
+const IcoLink = ({ s=15, c='currentColor' }: {s?:number;c?:string}) => (
+  <svg viewBox="0 0 20 20" width={s} height={s} fill="none" stroke={c} strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M7.5 12.5a4.24 4.24 0 006 0l2.5-2.5a4.24 4.24 0 00-6-6L8.5 5.5"/><path d="M12.5 7.5a4.24 4.24 0 00-6 0L4 10a4.24 4.24 0 006 6l1.5-1.5"/>
+  </svg>
+)
+const IcoSparkle = ({ s=15, c='currentColor' }: {s?:number;c?:string}) => (
+  <svg viewBox="0 0 20 20" width={s} height={s} fill={c}>
+    <path d="M10 2l1.8 5.4L17.5 9l-5.7 1.6L10 16.5l-1.8-5.9L2.5 9l5.7-1.6L10 2z"/>
+  </svg>
+)
+const IcoChart = ({ s=15, c='currentColor' }: {s?:number;c?:string}) => (
+  <svg viewBox="0 0 20 20" width={s} height={s} fill="none" stroke={c} strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="2" y="10" width="3" height="8" rx="1"/><rect x="8.5" y="6" width="3" height="12" rx="1"/><rect x="15" y="2" width="3" height="16" rx="1"/>
+  </svg>
+)
+const IcoCog = ({ s=15, c='currentColor' }: {s?:number;c?:string}) => (
+  <svg viewBox="0 0 20 20" width={s} height={s} fill="none" stroke={c} strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="10" cy="10" r="2.5"/>
+    <path d="M10 1v2.5M10 16.5V19M1 10h2.5M16.5 10H19M3.6 3.6l1.8 1.8M14.6 14.6l1.8 1.8M3.6 16.4l1.8-1.8M14.6 5.4l1.8-1.8"/>
+  </svg>
+)
+const IcoSun = ({ s=16, c='currentColor' }: {s?:number;c?:string}) => (
+  <svg viewBox="0 0 20 20" width={s} height={s} fill="none" stroke={c} strokeWidth="1.7" strokeLinecap="round">
+    <circle cx="10" cy="10" r="3.5"/>
+    <path d="M10 1.5V4M10 16v2.5M1.5 10H4M16 10h2.5M3.7 3.7l1.7 1.7M14.6 14.6l1.7 1.7M3.7 16.3l1.7-1.7M14.6 5.4l1.7-1.7"/>
+  </svg>
+)
+const IcoMoon = ({ s=16, c='currentColor' }: {s?:number;c?:string}) => (
+  <svg viewBox="0 0 20 20" width={s} height={s} fill="none" stroke={c} strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M16.5 11.5A7 7 0 018.5 3.5a7 7 0 100 13 7 7 0 008-5z"/>
+  </svg>
+)
+const IcoCursor = ({ s=15, c='currentColor' }: {s?:number;c?:string}) => (
+  <svg viewBox="0 0 20 20" width={s} height={s} fill={c}>
+    <path d="M4 2.5l11 7-6.5.5-2.5 6.5L4 2.5z"/>
+  </svg>
+)
+const IcoRadio = ({ s=15, c='currentColor' }: {s?:number;c?:string}) => (
+  <svg viewBox="0 0 20 20" width={s} height={s} fill="none" stroke={c} strokeWidth="1.7" strokeLinecap="round">
+    <circle cx="10" cy="10" r="2"/><path d="M5.64 5.64a6 6 0 000 8.48M14.36 5.64a6 6 0 010 8.48M2.93 2.93a10 10 0 000 14.14M17.07 2.93a10 10 0 010 14.14"/>
+  </svg>
+)
+const IcoCalendar = ({ s=13, c='currentColor' }: {s?:number;c?:string}) => (
+  <svg viewBox="0 0 20 20" width={s} height={s} fill="none" stroke={c} strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="2" y="4" width="16" height="14" rx="2"/><path d="M2 8h16M6 2v4M14 2v4"/>
+  </svg>
+)
+const IcoDownload = ({ s=13, c='currentColor' }: {s?:number;c?:string}) => (
+  <svg viewBox="0 0 20 20" width={s} height={s} fill="none" stroke={c} strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M10 3v10M6 9l4 4 4-4"/><path d="M3 17h14"/>
+  </svg>
+)
+const IcoPencil = ({ s=13, c='currentColor' }: {s?:number;c?:string}) => (
+  <svg viewBox="0 0 20 20" width={s} height={s} fill="none" stroke={c} strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M3 17l4-1 9-9a1.41 1.41 0 00-2-2L5 14z"/><path d="M14 5l2 2"/>
+  </svg>
+)
+const IcoWarn = ({ s=15, c='currentColor' }: {s?:number;c?:string}) => (
+  <svg viewBox="0 0 20 20" width={s} height={s} fill="none" stroke={c} strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M10 2L1.5 17h17L10 2z"/><path d="M10 8v4"/><circle cx="10" cy="14.5" r=".5" fill={c}/>
+  </svg>
+)
+const IcoLogout = ({ s=15, c='currentColor' }: {s?:number;c?:string}) => (
+  <svg viewBox="0 0 20 20" width={s} height={s} fill="none" stroke={c} strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M7 3H4a1 1 0 00-1 1v12a1 1 0 001 1h3"/><path d="M13 14l4-4-4-4M17 10H8"/>
+  </svg>
+)
+const IcoMenu = ({ s=16, c='currentColor' }: {s?:number;c?:string}) => (
+  <svg viewBox="0 0 20 20" width={s} height={s} fill="none" stroke={c} strokeWidth="1.7" strokeLinecap="round">
+    <path d="M3 5h14M3 10h14M3 15h14"/>
+  </svg>
+)
+const IcoX = ({ s=16, c='currentColor' }: {s?:number;c?:string}) => (
+  <svg viewBox="0 0 20 20" width={s} height={s} fill="none" stroke={c} strokeWidth="1.7" strokeLinecap="round">
+    <path d="M4 4l12 12M16 4L4 16"/>
   </svg>
 )
 
@@ -414,12 +497,12 @@ export default function Dashboard() {
   const avatarLetter = displayName[0]?.toUpperCase() ?? '?'
 
   const TABS = [
-    { key: 'overview' as TabKey, icon: '⬛', label_en: 'Overview', label_ar: 'نظرة عامة' },
-    { key: 'links' as TabKey, icon: '🔗', label_en: 'Links', label_ar: 'الروابط' },
+    { key: 'overview' as TabKey, icon: 'grid', label_en: 'Overview', label_ar: 'نظرة عامة' },
+    { key: 'links' as TabKey, icon: 'link', label_en: 'Links', label_ar: 'الروابط' },
     { key: 'qr' as TabKey, icon: 'qr', label_en: 'QR Codes', label_ar: 'QR' },
-    { key: 'bio' as TabKey, icon: '✨', label_en: 'Bio Link', label_ar: 'البايو' },
-    { key: 'analytics' as TabKey, icon: '📊', label_en: 'Analytics', label_ar: 'التحليلات' },
-    { key: 'settings' as TabKey, icon: '⚙️', label_en: 'Settings', label_ar: 'الإعدادات' },
+    { key: 'bio' as TabKey, icon: 'sparkle', label_en: 'Bio Link', label_ar: 'البايو' },
+    { key: 'analytics' as TabKey, icon: 'chart', label_en: 'Analytics', label_ar: 'التحليلات' },
+    { key: 'settings' as TabKey, icon: 'cog', label_en: 'Settings', label_ar: 'الإعدادات' },
   ]
 
   const theme: Record<string, string> = dark ? {
@@ -442,29 +525,29 @@ body { font-family: 'Space Grotesk', 'Tajawal', sans-serif; -webkit-font-smoothi
 .wrap { display: flex; flex-direction: column; min-height: 100vh; background: var(--bg); color: var(--ink); transition: background .25s, color .25s; }
 .topbar { background: var(--topbar); border-bottom: 1px solid var(--border); padding: 0 20px; height: 56px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 300; flex-shrink: 0; gap: 12px; transition: background .25s, border-color .25s; }
 .topbar-left { display: flex; align-items: center; gap: 10px; }
-.hamburger { display: none; background: none; border: 1px solid var(--border); border-radius: 8px; width: 36px; height: 36px; align-items: center; justify-content: center; cursor: pointer; color: var(--ink); font-size: 16px; transition: all .15s; flex-shrink: 0; }
+.hamburger { display: none; background: none; border: 1px solid var(--border); border-radius: 8px; width: 36px; height: 36px; align-items: center; justify-content: center; cursor: pointer; color: var(--ink); font-size: 16px; transition: all .15s; flex-shrink: 0; touch-action: manipulation; }
 .hamburger:hover { background: var(--hover); }
 @media (max-width: 768px) { .hamburger { display: flex; } }
 .logo-row { display: flex; align-items: center; gap: 8px; cursor: pointer; text-decoration: none; }
 .logo-name { font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 700; letter-spacing: -0.04em; color: var(--ink); }
 .topbar-right { display: flex; align-items: center; gap: 8px; }
-.icon-btn { width: 36px; height: 36px; border-radius: 9px; border: 1px solid var(--border); background: var(--surface2); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; color: var(--ink); transition: all .15s; flex-shrink: 0; }
+.icon-btn { width: 36px; height: 36px; border-radius: 9px; border: 1px solid var(--border); background: var(--surface2); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; color: var(--ink); transition: all .15s; flex-shrink: 0; touch-action: manipulation; }
 .icon-btn:hover { background: var(--hover); border-color: #D45A3F; }
-.lang-btn { height: 36px; padding: 0 12px; border-radius: 9px; border: 1px solid var(--border); background: var(--surface2); cursor: pointer; font-size: 12px; font-weight: 600; color: var(--ink); font-family: inherit; transition: all .15s; }
+.lang-btn { height: 36px; padding: 0 12px; border-radius: 9px; border: 1px solid var(--border); background: var(--surface2); cursor: pointer; font-size: 12px; font-weight: 600; color: var(--ink); font-family: inherit; transition: all .15s; touch-action: manipulation; }
 .lang-btn:hover { background: var(--hover); border-color: #D45A3F; }
 .avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #E8765C 0%, #E8C66B 100%); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 14px; cursor: pointer; flex-shrink: 0; }
 .body-row { display: flex; flex: 1; min-height: 0; }
 .sidebar { width: 220px; flex-shrink: 0; background: var(--sidebar); display: flex; flex-direction: column; padding: 16px 10px; height: calc(100vh - 56px); position: sticky; top: 56px; overflow-y: auto; transition: background .25s; }
 @media (max-width: 768px) { .sidebar { position: fixed; top: 0; bottom: 0; left: -260px; width: 240px; z-index: 400; height: 100vh; padding-top: 20px; transition: left .25s ease, background .25s; } .sidebar.open { left: 0; } [dir="rtl"] .sidebar { left: auto; right: -260px; } [dir="rtl"] .sidebar.open { right: 0; } }
 .nav-list { display: flex; flex-direction: column; gap: 2px; flex: 1; }
-.nav-btn { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; border: none; background: transparent; color: rgba(255,255,255,0.55); font-size: 13.5px; font-weight: 500; cursor: pointer; font-family: inherit; width: 100%; text-align: left; transition: all .15s; }
+.nav-btn { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; border: none; background: transparent; color: rgba(255,255,255,0.55); font-size: 13.5px; font-weight: 500; cursor: pointer; font-family: inherit; width: 100%; text-align: left; transition: all .15s; touch-action: manipulation; }
 [dir="rtl"] .nav-btn { text-align: right; }
 .nav-btn:hover { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.9); }
 .nav-btn.active { background: #D45A3F; color: white; box-shadow: 0 3px 10px rgba(212,90,63,0.35); }
 .nav-icon { width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
 .nav-divider { border: none; border-top: 1px solid rgba(255,255,255,0.08); margin: 10px 0; }
 .nav-bottom { margin-top: auto; }
-.logout-btn { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; border: none; background: transparent; color: rgba(255,255,255,0.35); font-size: 13px; font-weight: 500; cursor: pointer; font-family: inherit; width: 100%; text-align: left; transition: color .15s; }
+.logout-btn { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; border: none; background: transparent; color: rgba(255,255,255,0.35); font-size: 13px; font-weight: 500; cursor: pointer; font-family: inherit; width: 100%; text-align: left; transition: color .15s; touch-action: manipulation; }
 [dir="rtl"] .logout-btn { text-align: right; }
 .logout-btn:hover { color: #F4A593; }
 .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 350; cursor: pointer; }
@@ -518,7 +601,7 @@ body { font-family: 'Space Grotesk', 'Tajawal', sans-serif; -webkit-font-smoothi
 .pill b { color: var(--ink); font-weight: 600; }
 .acts { display: flex; gap: 5px; margin-left: auto; }
 [dir="rtl"] .acts { margin-left: 0; margin-right: auto; }
-.btn-s { padding: 5px 10px; border-radius: 7px; font-size: 11px; font-weight: 600; cursor: pointer; font-family: inherit; border: 1px solid var(--border); background: var(--surface); color: var(--ink); transition: all .15s; white-space: nowrap; }
+.btn-s { padding: 5px 10px; border-radius: 7px; font-size: 11px; font-weight: 600; cursor: pointer; font-family: inherit; border: 1px solid var(--border); background: var(--surface); color: var(--ink); transition: all .15s; white-space: nowrap; touch-action: manipulation; display: inline-flex; align-items: center; gap: 4px; }
 .btn-s:hover { border-color: #F4A593; color: #D45A3F; background: #FBEDE8; }
 .btn-s.ok { background: #EDF1EC; color: #3E5F3C; border-color: #8FA68E; }
 .btn-s.rm:hover { border-color: #E05252; color: #E05252; background: #FDEAEA; }
@@ -529,7 +612,7 @@ body { font-family: 'Space Grotesk', 'Tajawal', sans-serif; -webkit-font-smoothi
 .slug-box { display: flex; align-items: center; gap: 3px; background: var(--surface2); border: 1.5px solid var(--border); border-radius: 10px; padding: 10px 12px; }
 .slug-pre { font-size: 11.5px; color: var(--ink3); font-family: monospace; white-space: nowrap; }
 .slug-in { border: none; outline: none; background: transparent; font-size: 13px; font-family: monospace; font-weight: 600; color: var(--ink); width: 80px; }
-.go-btn { padding: 10px 20px; background: #E8765C; color: white; border: none; border-radius: 10px; font-size: 13.5px; font-weight: 700; cursor: pointer; font-family: inherit; white-space: nowrap; transition: all .15s; display: inline-flex; align-items: center; gap: 6px; }
+.go-btn { padding: 10px 20px; background: #E8765C; color: white; border: none; border-radius: 10px; font-size: 13.5px; font-weight: 700; cursor: pointer; font-family: inherit; white-space: nowrap; transition: all .15s; display: inline-flex; align-items: center; gap: 6px; touch-action: manipulation; }
 .go-btn:hover { background: #D45A3F; transform: translateY(-1px); }
 .go-btn:disabled { background: var(--ink3); cursor: not-allowed; transform: none; }
 .qr-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; }
@@ -565,7 +648,6 @@ body { font-family: 'Space Grotesk', 'Tajawal', sans-serif; -webkit-font-smoothi
 .bio-lbtn:hover { background:rgba(255,255,255,.18); }
 .bio-edit { margin-top:14px; padding:10px 20px; background:#E8765C; color:white; border:none; border-radius:9px; font-size:13.5px; font-weight:700; cursor:pointer; font-family:inherit; width:100%; position:relative; z-index:1; transition:all .15s; }
 .bio-edit:hover { background:#D45A3F; }
-.tool-btn { padding:12px 22px; background:#E8765C; color:white; border:none; border-radius:10px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; transition:all .15s; white-space:nowrap; }
 .tool-btn:hover { background:#D45A3F; transform:translateY(-1px); }
 .tool-btn:disabled { background:var(--ink3); cursor:not-allowed; transform:none; }
 .bio-create-box { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:24px; max-width:520px; margin:0 auto; text-align:center; }
@@ -595,7 +677,6 @@ body { font-family: 'Space Grotesk', 'Tajawal', sans-serif; -webkit-font-smoothi
 .f-in { width:100%; padding:11px 13px; background:var(--surface); border:1.5px solid var(--border); border-radius:10px; font-size:14px; color:var(--ink); font-family:inherit; outline:none; transition:all .15s; }
 .f-in:focus { border-color:#D45A3F; box-shadow:0 0 0 3px #FBEDE8; }
 .f-in option { background:var(--surface); }
-.save-btn { padding:11px 22px; background:#E8765C; color:white; border:none; border-radius:10px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; align-self:flex-start; transition:all .15s; }
 .save-btn:hover { background:#D45A3F; transform:translateY(-1px); }
 .save-btn.ok { background:#8FA68E; }
 .danger-box { margin-top:28px; padding:18px; border:1.5px dashed #E05252; border-radius:12px; background:#FDEAEA; }
@@ -605,8 +686,11 @@ body { font-family: 'Space Grotesk', 'Tajawal', sans-serif; -webkit-font-smoothi
 .empty { text-align:center; padding:28px 16px; }
 .empty .ico { font-size:34px; margin-bottom:8px; }
 .empty p { font-size:13px; color:var(--ink3); }
-.theme-btn { width:36px; height:36px; border-radius:9px; border:1px solid var(--border); background:var(--surface2); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:17px; transition:all .15s; flex-shrink:0; }
+.theme-btn { width:36px; height:36px; border-radius:9px; border:1px solid var(--border); background:var(--surface2); cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .15s; flex-shrink:0; touch-action:manipulation; }
 .theme-btn:hover { background:var(--hover); border-color:#D45A3F; }
+.tool-btn { padding:12px 22px; background:#E8765C; color:white; border:none; border-radius:10px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; transition:all .15s; white-space:nowrap; touch-action:manipulation; display:inline-flex; align-items:center; gap:6px; }
+.save-btn { padding:11px 22px; background:#E8765C; color:white; border:none; border-radius:10px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; align-self:flex-start; transition:all .15s; touch-action:manipulation; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
 `
 
   if (!user) return null
@@ -620,8 +704,8 @@ body { font-family: 'Space Grotesk', 'Tajawal', sans-serif; -webkit-font-smoothi
 
         <header className="topbar">
           <div className="topbar-left">
-            <button className="hamburger" onClick={() => setMenuOpen(v => !v)}>
-              {menuOpen ? '✕' : '☰'}
+            <button className="hamburger" onClick={() => setMenuOpen(v => !v)} aria-label={menuOpen ? 'Close menu' : 'Open menu'}>
+              {menuOpen ? <IcoX s={16} c="var(--ink)"/> : <IcoMenu s={16} c="var(--ink)"/>}
             </button>
             <a className="logo-row" href="/">
               <Logo s={30} />
@@ -629,8 +713,8 @@ body { font-family: 'Space Grotesk', 'Tajawal', sans-serif; -webkit-font-smoothi
             </a>
           </div>
           <div className="topbar-right">
-            <button className="theme-btn" onClick={() => setDark(v => !v)} title={dark ? 'Light mode' : 'Dark mode'}>
-              {dark ? '☀️' : '🌙'}
+            <button className="theme-btn" onClick={() => setDark(v => !v)} aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'}>
+              {dark ? <IcoSun s={16} c="var(--ink)"/> : <IcoMoon s={16} c="var(--ink)"/>}
             </button>
             <button className="lang-btn" onClick={() => setLang(l => l === 'en' ? 'ar' : 'en')}>
               {lang === 'en' ? 'العربية' : 'EN'}
@@ -648,10 +732,13 @@ body { font-family: 'Space Grotesk', 'Tajawal', sans-serif; -webkit-font-smoothi
                   className={`nav-btn ${tab === tb.key ? 'active' : ''}`}
                   onClick={() => { setTab(tb.key); setMenuOpen(false); }}
                 >
-                  <span className="nav-icon">
-                    {tb.icon === 'qr'
-                      ? <QRIcon s={15} color={tab === tb.key ? 'white' : 'rgba(255,255,255,.55)'} />
-                      : tb.icon}
+                  <span className="nav-icon" aria-hidden="true">
+                    {tb.icon === 'qr' ? <QRIcon s={15} color={tab === tb.key ? 'white' : 'rgba(255,255,255,.55)'}/>
+                    : tb.icon === 'grid' ? <IcoGrid s={15} c={tab === tb.key ? 'white' : 'rgba(255,255,255,.55)'}/>
+                    : tb.icon === 'link' ? <IcoLink s={15} c={tab === tb.key ? 'white' : 'rgba(255,255,255,.55)'}/>
+                    : tb.icon === 'sparkle' ? <IcoSparkle s={15} c={tab === tb.key ? 'white' : 'rgba(255,255,255,.55)'}/>
+                    : tb.icon === 'chart' ? <IcoChart s={15} c={tab === tb.key ? 'white' : 'rgba(255,255,255,.55)'}/>
+                    : <IcoCog s={15} c={tab === tb.key ? 'white' : 'rgba(255,255,255,.55)'}/>}
                   </span>
                   <span>{lang === 'en' ? tb.label_en : tb.label_ar}</span>
                 </button>
@@ -660,7 +747,7 @@ body { font-family: 'Space Grotesk', 'Tajawal', sans-serif; -webkit-font-smoothi
             <hr className="nav-divider" />
             <div className="nav-bottom">
               <button className="logout-btn" onClick={handleLogout}>
-                <span className="nav-icon">↩</span>
+                <span className="nav-icon" aria-hidden="true"><IcoLogout s={15} c="currentColor"/></span>
                 <span>{t.logout}</span>
               </button>
             </div>
@@ -675,15 +762,20 @@ body { font-family: 'Space Grotesk', 'Tajawal', sans-serif; -webkit-font-smoothi
               </div>
               <div className="stat-grid">
                 {[
-                  { lbl:t.total_clicks, val:totalClicks.toLocaleString(), cls:'c-coral', ico:'👆', bg:'bg-coral', delta:<><b>+18%</b> {t.vs_last}</> },
-                  { lbl:t.total_links,  val:links.length,                 cls:'c-sage',  ico:'🔗', bg:'bg-sage',  delta:`${t.this_week}: +2` },
-                  { lbl:t.total_qr,     val:qrs.length,                   cls:'c-butter', ico:'qr', bg:'bg-butter', delta:`${t.this_week}: +1` },
-                  { lbl:t.total_scans,  val:totalScans.toLocaleString(),   cls:'',        ico:'📡', bg:'bg-warm',  delta:<><b>+24%</b> {t.vs_last}</> },
+                  { lbl:t.total_clicks, val:totalClicks.toLocaleString(), cls:'c-coral', ico:'cursor', bg:'bg-coral', delta:<><b>+18%</b> {t.vs_last}</> },
+                  { lbl:t.total_links,  val:links.length,                 cls:'c-sage',  ico:'link',   bg:'bg-sage',  delta:`${t.this_week}: +2` },
+                  { lbl:t.total_qr,     val:qrs.length,                   cls:'c-butter', ico:'qr',   bg:'bg-butter', delta:`${t.this_week}: +1` },
+                  { lbl:t.total_scans,  val:totalScans.toLocaleString(),   cls:'',        ico:'radio',  bg:'bg-warm',  delta:<><b>+24%</b> {t.vs_last}</> },
                 ].map((s, i) => (
                   <div key={i} className="stat-card">
                     <div className="stat-top">
                       <span className="stat-lbl">{s.lbl}</span>
-                      <div className={`stat-ico ${s.bg}`}>{s.ico === 'qr' ? <QRIcon s={15} color="#A07B1A"/> : s.ico}</div>
+                      <div className={`stat-ico ${s.bg}`} aria-hidden="true">
+                        {s.ico === 'qr' ? <QRIcon s={15} color="#A07B1A"/>
+                        : s.ico === 'cursor' ? <IcoCursor s={15} c="#D45A3F"/>
+                        : s.ico === 'link' ? <IcoLink s={15} c="#3E5F3C"/>
+                        : <IcoRadio s={15} c="var(--ink2)"/>}
+                      </div>
                     </div>
                     <div className={`stat-num ${s.cls}`}>{s.val}</div>
                     <div className="stat-delta">{s.delta}</div>
@@ -726,8 +818,8 @@ body { font-family: 'Space Grotesk', 'Tajawal', sans-serif; -webkit-font-smoothi
                       <span className="lnk-slug">j2z.com/{l.slug}</span>
                       <span className="lnk-url">{l.url}</span>
                       <div className="pill-wrap">
-                        <span className="pill">👆 <b>{l.clicks.toLocaleString()}</b></span>
-                        <span className="pill">📅 {l.created}</span>
+                        <span className="pill"><IcoCursor s={10} c="var(--ink2)"/> <b>{l.clicks.toLocaleString()}</b></span>
+                        <span className="pill"><IcoCalendar s={10} c="var(--ink2)"/> {l.created}</span>
                       </div>
                       <div className="acts">
                         <button className={`btn-s ${copiedId === l.id ? 'ok' : ''}`} onClick={() => copyLink(l.slug, l.id)}>
@@ -752,15 +844,15 @@ body { font-family: 'Space Grotesk', 'Tajawal', sans-serif; -webkit-font-smoothi
               </div>
               <div className="card">
                 {links.length === 0
-                  ? <div className="empty"><div className="ico">🔗</div><p>{t.empty_links}</p></div>
+                  ? <div className="empty"><div className="ico"><IcoLink s={34} c="var(--ink3)"/></div><p>{t.empty_links}</p></div>
                   : <div className="link-list">
                     {links.map(l => (
                       <div key={l.id} className="link-row">
                         <span className="lnk-slug">j2z.com/{l.slug}</span>
                         <span className="lnk-url">{l.url}</span>
                         <div className="pill-wrap">
-                          <span className="pill">👆 <b>{l.clicks.toLocaleString()}</b> {t.clicks}</span>
-                          <span className="pill">📅 {l.created}</span>
+                          <span className="pill"><IcoCursor s={10} c="var(--ink2)"/> <b>{l.clicks.toLocaleString()}</b> {t.clicks}</span>
+                          <span className="pill"><IcoCalendar s={10} c="var(--ink2)"/> {l.created}</span>
                         </div>
                         <div className="acts">
                           <button className={`btn-s ${copiedId === l.id ? 'ok' : ''}`} onClick={() => copyLink(l.slug, l.id)}>{copiedId === l.id ? t.copied : t.copy}</button>
@@ -782,7 +874,7 @@ body { font-family: 'Space Grotesk', 'Tajawal', sans-serif; -webkit-font-smoothi
                 </button>
               </div>
               {qrs.length === 0
-                ? <div className="card"><div className="empty"><div className="ico">⬛</div><p>{t.empty_qr}</p></div></div>
+                ? <div className="card"><div className="empty"><div className="ico"><QRIcon s={34} color="var(--ink3)"/></div><p>{t.empty_qr}</p></div></div>
                 : <div className="qr-grid">
                   {qrs.map(q => (
                     <div key={q.id} className="qr-card">
@@ -794,10 +886,10 @@ body { font-family: 'Space Grotesk', 'Tajawal', sans-serif; -webkit-font-smoothi
                       </div>
                       <div className="qr-slug">j2z.com/{q.slug}</div>
                       <div className="qr-dest">{q.url}</div>
-                      <div className="qr-scans"><span className="pill">📡 <b>{q.scans}</b> {t.scans}</span></div>
+                      <div className="qr-scans"><span className="pill"><IcoRadio s={10} c="var(--ink2)"/> <b>{q.scans}</b> {t.scans}</span></div>
                       <div className="qr-acts">
-                        <button className="btn-s" onClick={() => downloadQR(q.id, q.slug)}>⬇ {t.download}</button>
-                        <button className="btn-s" onClick={() => { setEditQrId(editQrId === q.id ? null : q.id); setEditDest(q.url); }}>✏️ {t.edit_dest}</button>
+                        <button className="btn-s" onClick={() => downloadQR(q.id, q.slug)}><IcoDownload s={13} c="currentColor"/> {t.download}</button>
+                        <button className="btn-s" onClick={() => { setEditQrId(editQrId === q.id ? null : q.id); setEditDest(q.url); }}><IcoPencil s={13} c="currentColor"/> {t.edit_dest}</button>
                         <button className="btn-s rm" onClick={() => deleteQr(q.id)}>{t.del}</button>
                       </div>
                       {editQrId === q.id && (
@@ -877,10 +969,10 @@ body { font-family: 'Space Grotesk', 'Tajawal', sans-serif; -webkit-font-smoothi
                       </label>
                     </div>
 
-                    {[{val: String(bioLinks.length), lbl:t.bio_links, ico:'🔗'}].map((s, i) => (
+                    {[{val: String(bioLinks.length), lbl:t.bio_links}].map((s, i) => (
                       <div key={i} className="bio-stat-row">
                         <div><div className="bio-st-num">{s.val}</div><div className="bio-st-lbl">{s.lbl}</div></div>
-                        <span style={{fontSize:26}}>{s.ico}</span>
+                        <span aria-hidden="true"><IcoLink s={26} c="#D45A3F"/></span>
                       </div>
                     ))}
 
@@ -956,11 +1048,11 @@ body { font-family: 'Space Grotesk', 'Tajawal', sans-serif; -webkit-font-smoothi
               <div className="pg-head"><h1 className="pg-title">{t.analytics}</h1></div>
               <div className="stat-grid">
                 {[
-                  {lbl:t.total_clicks, val:totalClicks.toLocaleString(), cls:'c-coral', ico:'👆', bg:'bg-coral', delta:<><b>+18%</b> {t.vs_last}</>},
-                  {lbl:t.total_scans, val:totalScans, cls:'', ico:'📡', bg:'bg-warm', delta:<><b>+24%</b> {t.vs_last}</>},
+                  {lbl:t.total_clicks, val:totalClicks.toLocaleString(), cls:'c-coral', ico:'cursor', bg:'bg-coral', delta:<><b>+18%</b> {t.vs_last}</>},
+                  {lbl:t.total_scans, val:totalScans, cls:'', ico:'radio', bg:'bg-warm', delta:<><b>+24%</b> {t.vs_last}</>},
                 ].map((s, i) => (
                   <div key={i} className="stat-card">
-                    <div className="stat-top"><span className="stat-lbl">{s.lbl}</span><div className={`stat-ico ${s.bg}`}>{s.ico}</div></div>
+                    <div className="stat-top"><span className="stat-lbl">{s.lbl}</span><div className={`stat-ico ${s.bg}`} aria-hidden="true">{s.ico === 'cursor' ? <IcoCursor s={15} c="#D45A3F"/> : <IcoRadio s={15} c="var(--ink2)"/>}</div></div>
                     <div className={`stat-num ${s.cls}`}>{s.val}</div>
                     <div className="stat-delta">{s.delta}</div>
                   </div>
@@ -1030,9 +1122,9 @@ body { font-family: 'Space Grotesk', 'Tajawal', sans-serif; -webkit-font-smoothi
                   <div>
                     <div className="f-lbl">{lang === 'en' ? 'Theme' : 'المظهر'}</div>
                     <div style={{display:'flex', gap:8}}>
-                      {[{v:false, l:lang === 'en' ? 'Light ☀️' : 'فاتح ☀️'},{v:true, l:lang === 'en' ? 'Dark 🌙' : 'داكن 🌙'}].map(o => (
-                        <button key={String(o.v)} onClick={() => setDark(o.v)} style={{flex:1, padding:'10px', borderRadius:9, border:`2px solid ${dark === o.v ? '#D45A3F' : 'var(--border)'}`, background:dark === o.v ? '#FBEDE8' : 'var(--surface2)', color:dark === o.v ? '#D45A3F' : 'var(--ink)', fontWeight:600, cursor:'pointer', fontSize:13, fontFamily:'inherit', transition:'all .15s'}}>
-                          {o.l}
+                      {([{v:false, l:lang === 'en' ? 'Light' : 'فاتح', icon:<IcoSun s={14} c="currentColor"/>},{v:true, l:lang === 'en' ? 'Dark' : 'داكن', icon:<IcoMoon s={14} c="currentColor"/>}] as {v:boolean;l:string;icon:React.ReactNode}[]).map(o => (
+                        <button key={String(o.v)} onClick={() => setDark(o.v)} style={{flex:1, padding:'10px', borderRadius:9, border:`2px solid ${dark === o.v ? '#D45A3F' : 'var(--border)'}`, background:dark === o.v ? '#FBEDE8' : 'var(--surface2)', color:dark === o.v ? '#D45A3F' : 'var(--ink)', fontWeight:600, cursor:'pointer', fontSize:13, fontFamily:'inherit', transition:'all .15s', display:'inline-flex', alignItems:'center', justifyContent:'center', gap:6, touchAction:'manipulation'}}>
+                          {o.icon} {o.l}
                         </button>
                       ))}
                     </div>
@@ -1042,7 +1134,7 @@ body { font-family: 'Space Grotesk', 'Tajawal', sans-serif; -webkit-font-smoothi
                   </button>
                 </div>
                 <div className="danger-box">
-                  <div className="danger-ttl">⚠️ {t.s_danger}</div>
+                  <div className="danger-ttl" style={{display:'flex',alignItems:'center',gap:6}}><IcoWarn s={15} c="#C03030"/> {t.s_danger}</div>
                   <p className="danger-sub">{lang === 'en' ? 'Once deleted, your account and all data cannot be recovered.' : 'بمجرد الحذف، لا يمكن استعادة حسابك وبياناتك.'}</p>
                   <button className="danger-btn">{t.s_delete}</button>
                 </div>

@@ -246,6 +246,8 @@ body{background:var(--paper);color:var(--ink);font-family:'Space Grotesk','Tajaw
 .benefit-text p{font-size:13px;color:rgba(255,255,255,.6);line-height:1.45;}
 .right-tagline{margin-top:48px;padding-top:24px;border-top:1px solid rgba(255,255,255,.1);font-family:'Cal Sans','Tajawal',sans-serif;font-size:18px;color:rgba(255,255,255,.5);font-style:italic;}
 .right-tagline strong{color:var(--coral-light);font-style:normal;}
+button,a{touch-action:manipulation;}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:0.01ms!important;transition-duration:0.01ms!important;}}
 `
 
   return (

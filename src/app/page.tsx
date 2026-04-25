@@ -349,6 +349,8 @@ body{background:var(--paper);color:var(--ink);font-family:'Space Grotesk','Tajaw
 .prompt-consent a{color:var(--coral-deep);text-decoration:underline;font-weight:600;cursor:pointer;}
 .prompt-close{margin-top:10px;background:none;border:none;color:var(--ink-mute);font-size:13px;cursor:pointer;font-family:inherit;text-decoration:underline;}
 .prompt-close:hover{color:var(--ink);}
+button,a{touch-action:manipulation;}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:0.01ms!important;transition-duration:0.01ms!important;}}
 `
 
   return (
