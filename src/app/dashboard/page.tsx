@@ -10,34 +10,19 @@ type Lang = 'en' | 'ar'
 type TabKey = 'overview' | 'links' | 'qr' | 'bio' | 'analytics' | 'settings'
 
 interface LinkItem {
-  id: string | number
+  id: string
   slug: string
   url: string
   clicks: number
-  country: string
-  device: string
   created: string
-  lastClick: string
 }
 interface QrItem {
-  id: string | number
+  id: string
   slug: string
   url: string
   scans: number
   created: string
-  lastScan: string
 }
-
-const MOCK_LINKS: LinkItem[] = [
-  { id: 1, slug: 'launch24', url: 'https://www.myproduct.com/launch/2024/announcement', clicks: 1842, country: 'SA', device: 'Mobile', created: '2025-12-01', lastClick: '2025-12-19' },
-  { id: 2, slug: 'insta', url: 'https://www.instagram.com/myprofile', clicks: 934, country: 'AE', device: 'Mobile', created: '2025-11-15', lastClick: '2025-12-18' },
-  { id: 3, slug: 'menu', url: 'https://www.myrestaurant.com/menu-ramadan-2024', clicks: 412, country: 'KW', device: 'Mobile', created: '2025-10-30', lastClick: '2025-12-10' },
-  { id: 4, slug: 'cv', url: 'https://www.notion.so/myname/resume-2024-final', clicks: 203, country: 'EG', device: 'Desktop', created: '2025-09-20', lastClick: '2025-12-05' },
-]
-const MOCK_QRS: QrItem[] = [
-  { id: 1, slug: 'shop-qr', url: 'https://myshop.com/products', scans: 628, created: '2025-11-20', lastScan: '2025-12-19' },
-  { id: 2, slug: 'card-qr', url: 'https://mycard.com/ahmed', scans: 291, created: '2025-10-10', lastScan: '2025-12-14' },
-]
 const WEEKLY = [12, 28, 19, 44, 36, 62, 48]
 const DAYS = { en: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'], ar: ['إث','ثلا','أرب','خمي','جمع','سبت','أحد'] }
 const COUNTRIES = [
@@ -143,20 +128,32 @@ export default function Dashboard() {
   const [dark, setDark] = useState(false)
   const [tab, setTab] = useState<TabKey>('overview')
   const [menuOpen, setMenuOpen] = useState(false)
-  const [links, setLinks] = useState<LinkItem[]>(MOCK_LINKS)
-  const [qrs, setQrs] = useState<QrItem[]>(MOCK_QRS)
+  const [links, setLinks] = useState<LinkItem[]>([])
+  const [qrs, setQrs] = useState<QrItem[]>([])
   const [newUrl, setNewUrl] = useState('')
   const [newSlug, setNewSlug] = useState('')
   const [qrUrl, setQrUrl] = useState('')
-  const [copiedId, setCopiedId] = useState<string | number | null>(null)
-  const [editQrId, setEditQrId] = useState<string | number | null>(null)
+  const [copiedId, setCopiedId] = useState<string | null>(null)
+  const [editQrId, setEditQrId] = useState<string | null>(null)
   const [editDest, setEditDest] = useState('')
   const [saved, setSaved] = useState(false)
-  const qrRefs = useRef<Record<string | number, HTMLCanvasElement | null>>({})
+  const qrRefs = useRef<Record<string, HTMLCanvasElement | null>>({})
   const t = TXT[lang]
   const dir = lang === 'ar' ? 'rtl' : 'ltr'
   const hr = new Date().getHours()
   const greeting = hr < 14 ? t.good_morning : t.good_evening
+
+  const fetchLinks = useCallback(async (uid: string) => {
+    const sb = getSupabase()
+    const { data } = await sb.from('links').select('id,slug,destination_url,clicks,created_at').eq('user_id', uid).eq('is_active', true).order('created_at', { ascending: false })
+    if (data) setLinks(data.map(l => ({ id: l.id, slug: l.slug, url: l.destination_url, clicks: l.clicks ?? 0, created: l.created_at?.slice(0, 10) ?? '' })))
+  }, [])
+
+  const fetchQrs = useCallback(async (uid: string) => {
+    const sb = getSupabase()
+    const { data } = await sb.from('qr_codes').select('id,slug,destination_url,scans,created_at').eq('user_id', uid).eq('is_active', true).order('created_at', { ascending: false })
+    if (data) setQrs(data.map(q => ({ id: q.id, slug: q.slug, url: q.destination_url, scans: q.scans ?? 0, created: q.created_at?.slice(0, 10) ?? '' })))
+  }, [])
 
   useEffect(() => {
     getSupabase().auth.getUser().then(({ data }) => {
@@ -164,6 +161,8 @@ export default function Dashboard() {
         router.replace('/auth')
       } else {
         setUser(data.user)
+        fetchLinks(data.user.id)
+        fetchQrs(data.user.id)
       }
     })
   }, [])
@@ -190,7 +189,7 @@ export default function Dashboard() {
     }
   }, [tab, qrs, drawQR])
 
-  const copyLink = (slug: string, id: string | number) => {
+  const copyLink = (slug: string, id: string) => {
     navigator.clipboard.writeText(`j2z.com/${slug}`).catch(() => {})
     setCopiedId(id)
     setTimeout(() => setCopiedId(null), 1800)
@@ -208,12 +207,12 @@ export default function Dashboard() {
       })
       const data = await res.json()
       if (res.ok) {
-        setLinks(p => [{ id: data.id ?? Date.now(), slug: data.slug ?? slug, url: u, clicks: 0, country: '—', device: '—', created: new Date().toISOString().slice(0, 10), lastClick: '—' }, ...p])
+        setLinks(p => [{ id: data.id ?? String(Date.now()), slug: data.slug ?? slug, url: u, clicks: 0, created: new Date().toISOString().slice(0, 10) }, ...p])
         setNewUrl('')
         setNewSlug('')
       }
     } catch {
-      setLinks(p => [{ id: Date.now(), slug, url: u, clicks: 0, country: '—', device: '—', created: new Date().toISOString().slice(0, 10), lastClick: '—' }, ...p])
+      setLinks(p => [{ id: String(Date.now()), slug, url: u, clicks: 0, created: new Date().toISOString().slice(0, 10) }, ...p])
       setNewUrl('')
       setNewSlug('')
     }
@@ -222,23 +221,48 @@ export default function Dashboard() {
   const addQR = async () => {
     const u = qrUrl.trim()
     if (!u) return
-    const slug = `qr-${Math.random().toString(36).slice(2, 5)}`
-    const q: QrItem = { id: Date.now(), slug, url: u, scans: 0, created: new Date().toISOString().slice(0, 10), lastScan: '—' }
-    setQrs(p => [q, ...p])
     setQrUrl('')
-    setTimeout(() => {
-      const el = qrRefs.current[q.id]
-      if (el) drawQR(el, u)
-    }, 80)
+    try {
+      const res = await fetch('/api/qr', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: u }),
+      })
+      const data = await res.json()
+      if (res.ok) {
+        const q: QrItem = { id: data.id, slug: data.slug, url: u, scans: 0, created: new Date().toISOString().slice(0, 10) }
+        setQrs(p => [q, ...p])
+        setTimeout(() => {
+          const el = qrRefs.current[q.id]
+          if (el) drawQR(el, u)
+        }, 80)
+      }
+    } catch {}
   }
 
-  const saveQrDest = (id: string | number) => {
+  const deleteLink = async (id: string) => {
+    setLinks(p => p.filter(x => x.id !== id))
+    await fetch(`/api/links/${id}`, { method: 'DELETE' })
+  }
+
+  const deleteQr = async (id: string) => {
+    setQrs(p => p.filter(x => x.id !== id))
+    await fetch(`/api/qr/${id}`, { method: 'DELETE' })
+  }
+
+  const saveQrDest = async (id: string) => {
     setQrs(p => p.map(q => q.id === id ? { ...q, url: editDest } : q))
     setEditQrId(null)
+    const dest = editDest
     setEditDest('')
+    await fetch(`/api/qr/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ destination_url: dest }),
+    })
   }
 
-  const downloadQR = (id: string | number, slug: string) => {
+  const downloadQR = (id: string, slug: string) => {
     const cvs = qrRefs.current[id]
     if (!cvs) return
     const a = document.createElement('a')
@@ -549,7 +573,7 @@ body { font-family: 'Space Grotesk', 'Tajawal', sans-serif; -webkit-font-smoothi
                       <span className="lnk-url">{l.url}</span>
                       <div className="pill-wrap">
                         <span className="pill">👆 <b>{l.clicks.toLocaleString()}</b></span>
-                        <span className="pill">📍 {l.country}</span>
+                        <span className="pill">📅 {l.created}</span>
                       </div>
                       <div className="acts">
                         <button className={`btn-s ${copiedId === l.id ? 'ok' : ''}`} onClick={() => copyLink(l.slug, l.id)}>
@@ -582,13 +606,11 @@ body { font-family: 'Space Grotesk', 'Tajawal', sans-serif; -webkit-font-smoothi
                         <span className="lnk-url">{l.url}</span>
                         <div className="pill-wrap">
                           <span className="pill">👆 <b>{l.clicks.toLocaleString()}</b> {t.clicks}</span>
-                          <span className="pill">📱 {l.device}</span>
-                          <span className="pill">📍 {l.country}</span>
-                          <span className="pill">🕐 {l.lastClick}</span>
+                          <span className="pill">📅 {l.created}</span>
                         </div>
                         <div className="acts">
                           <button className={`btn-s ${copiedId === l.id ? 'ok' : ''}`} onClick={() => copyLink(l.slug, l.id)}>{copiedId === l.id ? t.copied : t.copy}</button>
-                          <button className="btn-s rm" onClick={() => setLinks(p => p.filter(x => x.id !== l.id))}>{t.del}</button>
+                          <button className="btn-s rm" onClick={() => deleteLink(l.id)}>{t.del}</button>
                         </div>
                       </div>
                     ))}
@@ -622,7 +644,7 @@ body { font-family: 'Space Grotesk', 'Tajawal', sans-serif; -webkit-font-smoothi
                       <div className="qr-acts">
                         <button className="btn-s" onClick={() => downloadQR(q.id, q.slug)}>⬇ {t.download}</button>
                         <button className="btn-s" onClick={() => { setEditQrId(editQrId === q.id ? null : q.id); setEditDest(q.url); }}>✏️ {t.edit_dest}</button>
-                        <button className="btn-s rm" onClick={() => setQrs(p => p.filter(x => x.id !== q.id))}>{t.del}</button>
+                        <button className="btn-s rm" onClick={() => deleteQr(q.id)}>{t.del}</button>
                       </div>
                       {editQrId === q.id && (
                         <div className="edit-dest-box">
@@ -645,7 +667,7 @@ body { font-family: 'Space Grotesk', 'Tajawal', sans-serif; -webkit-font-smoothi
                 <div className="bio-left">
                   <div className="bio-url-row">
                     <span className="bio-url-txt">j2z.com/{user.user_metadata?.username ?? displayName.toLowerCase().replace(/\s+/g,'')}</span>
-                    <button className={`btn-s ${copiedId === 'bio' ? 'ok' : ''}`} onClick={() => { navigator.clipboard.writeText(`j2z.com/${displayName.toLowerCase()}`); setCopiedId('bio'); setTimeout(() => setCopiedId(null), 1800); }}>{copiedId === 'bio' ? t.copied : t.copy}</button>
+                    <button className={`btn-s ${copiedId === 'bio-link' ? 'ok' : ''}`} onClick={() => { navigator.clipboard.writeText(`j2z.com/${displayName.toLowerCase()}`); setCopiedId('bio-link'); setTimeout(() => setCopiedId(null), 1800); }}>{copiedId === 'bio-link' ? t.copied : t.copy}</button>
                   </div>
                   {[{val:'2,841', lbl:t.bio_views, ico:'👁️'},{val:'4', lbl:t.bio_links, ico:'🔗'}].map((s, i) => (
                     <div key={i} className="bio-stat-row">
