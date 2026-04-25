@@ -241,6 +241,13 @@ In `.env.local` it is stored under BOTH `NEXT_PUBLIC_SUPABASE_ANON_KEY` and `NEX
 - ✅ Landing + Auth: added `touch-action:manipulation` + `prefers-reduced-motion` global rules
 - ✅ Committed and pushed (commit `162f654`)
 
+### Session 7 — Polish (P7)
+- ✅ Created `src/app/not-found.tsx` — branded 404: coral "404" glyph, inline CSS, Cal Sans, back-home + dashboard links
+- ✅ Created `src/app/error.tsx` — global error boundary (client component), retry + back-home buttons
+- ✅ Dashboard skeleton: replaced `return null` with pulsing J2z logo + skeleton bars while auth loads
+- ✅ Bio tab skeleton: replaced `...` with animated skeleton bars while bio data fetches
+- ✅ Committed and pushed (commit `6452317`)
+
 ---
 
 ## What's Next (Pending Work)
@@ -269,10 +276,10 @@ In `.env.local` it is stored under BOTH `NEXT_PUBLIC_SUPABASE_ANON_KEY` and `NEX
 - Add production URL to Supabase auth redirects
 
 ### Priority 7 — Polish
-- 404 page (`src/app/not-found.tsx`)
-- Loading states (skeleton screens)
-- Error boundaries
-- Mobile testing
+- ✅ 404 page (`src/app/not-found.tsx`) — branded coral glyph, bilingual, back-home CTA
+- ✅ Error boundary (`src/app/error.tsx`) — client component, retry button
+- ✅ Loading states — dashboard skeleton (pulsing logo on auth wait, skeleton bars for bio tab)
+- Mobile testing — manual (user must test on device)
 
 ---
 
