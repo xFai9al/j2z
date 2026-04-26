@@ -47,8 +47,9 @@ j2z/
 │   │   └── utils.ts                  ✅ generateSlug, isValidUrl, ensureHttps, formatDate
 │   └── middleware.ts                  ✅ Session refresh on every request
 ├── supabase/
-│   └── schema.sql                    ✅ Full 8-table schema (NOT yet applied to Supabase)
-├── .env.local                        ⚠️  PLACEHOLDER — user must fill in real values
+│   ├── schema.sql                    ✅ Full 8-table schema (applied to Supabase)
+│   └── schema-additions.sql          ✅ Trigger fix + track_click function (applied to Supabase)
+├── .env.local                        ✅ Real values set
 ├── tailwind.config.ts                ✅ darkMode: 'class'
 └── package.json                      ✅ All deps installed
 ```
@@ -127,15 +128,25 @@ NEXT_PUBLIC_SITE_URL=https://j2z.com
 - Tables: ✅ ALL 8 TABLES CREATED (links, profiles, qr_codes, clicks, bio_pages, bio_links, anon_usage, url_blocklist)
 - url_blocklist: ✅ 8 blocked patterns seeded (porn/gambling domains + keywords)
 - Auth providers: ❌ NOT configured
-- Vercel env vars: ❌ NOT added
+- Vercel env vars: ✅ SET (NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, NEXT_PUBLIC_SITE_URL, SUPABASE_SERVICE_ROLE_KEY)
 
-### What still needs to be done (in order):
+### Supabase setup — FULLY COMPLETE:
 1. ✅ Created Supabase project
 2. ✅ Filled `.env.local` with real URL and key
-3. ✅ Ran `supabase/schema.sql` — all tables verified working
-4. ❌ Enable Auth providers: Email/Password + Google OAuth
-5. ❌ Add redirect URLs in Supabase Auth settings: `https://j2z.com/auth/callback` and `https://j2z-zeta.vercel.app/auth/callback`
-6. ❌ Add env vars to Vercel: `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+3. ✅ Ran `supabase/schema.sql` — all 8 tables created
+4. ✅ Ran `supabase/schema-additions.sql` — trigger fix + track_click function applied
+5. ✅ Email/Password auth enabled (default)
+6. ✅ Google OAuth enabled — Client ID configured, redirect URLs set
+7. ✅ Redirect URLs added: `https://j2z.com/auth/callback` and `https://j2z-zeta.vercel.app/auth/callback`
+8. ✅ Env vars added to Vercel
+
+### Supabase service role key:
+Stored in Vercel as `SUPABASE_SERVICE_ROLE_KEY` (server-only, no NEXT_PUBLIC_ prefix).
+Used in `src/middleware.ts` for click tracking — bypasses RLS on INSERT into clicks table.
+
+### Google OAuth credentials (stored in Supabase dashboard):
+- Google Cloud project: j2zz
+- Client ID: 614363137131-0loga1r7sdjlflmisn825qcuj3qbh2bs.apps.googleusercontent.com
 
 ### Note on key naming:
 Supabase now calls the anon key a "Publishable Key" (`sb_publishable_...`).
@@ -258,6 +269,16 @@ In `.env.local` it is stored under BOTH `NEXT_PUBLIC_SUPABASE_ANON_KEY` and `NEX
 - ✅ Dashboard settings tab: delete account button calls DELETE `/api/account` with confirm dialog
 - ✅ Committed and pushed (this session)
 
+### Session 9 — Full Production Setup
+- ✅ Diagnosed `profiles.email NOT NULL` bug blocking all signups (profiles table had extra column from old schema)
+- ✅ Updated `supabase/schema-additions.sql` with 3 fixes: ALTER TABLE email nullable, updated handle_new_user trigger, track_click function
+- ✅ User ran schema-additions.sql — verified user creation + profile trigger works end-to-end
+- ✅ Middleware updated to use `SUPABASE_SERVICE_ROLE_KEY` (bypasses RLS for click tracking)
+- ✅ `track_click` RPC confirmed working (HTTP 204) — analytics fully functional
+- ✅ Google OAuth configured: Client ID set in Supabase, redirect URLs added, verified working
+- ✅ All auth flows tested and confirmed: Email signup ✅, Google OAuth ✅
+- ✅ Committed and pushed (commit `a01bf4e`)
+
 ### Session 7 — Polish (P7)
 - ✅ Created `src/app/not-found.tsx` — branded 404: coral "404" glyph, inline CSS, Cal Sans, back-home + dashboard links
 - ✅ Created `src/app/error.tsx` — global error boundary (client component), retry + back-home buttons
@@ -269,12 +290,8 @@ In `.env.local` it is stored under BOTH `NEXT_PUBLIC_SUPABASE_ANON_KEY` and `NEX
 
 ## What's Next (Pending Work)
 
-### Priority 1 — Make it actually work (requires Supabase setup)
-1. **User sets up Supabase** (see steps above)
-2. **Fill `.env.local`** with real URL and anon key
-3. **Add same vars to Vercel** → triggers redeploy
-4. **Run `supabase/schema.sql`** in Supabase SQL Editor
-5. **Enable auth providers** in Supabase dashboard
+### Priority 1 — Make it actually work ✅ DONE (Sessions 8–9)
+- Supabase fully configured, auth working, click tracking working
 
 ### Priority 2 — Replace mock data in dashboard ✅ DONE (Session 4)
 
@@ -301,9 +318,7 @@ In `.env.local` it is stored under BOTH `NEXT_PUBLIC_SUPABASE_ANON_KEY` and `NEX
 - ✅ Delete account (session 8) — deactivates data + signs out
 - Mobile testing — manual (user must test on device)
 
-### Priority 8 — Pending: Supabase `schema-additions.sql`
-**REQUIRED**: Run `supabase/schema-additions.sql` in Supabase SQL Editor to enable click tracking.
-Without this, clicks track to 0 (redirects still work).
+### Priority 8 ✅ DONE — schema-additions.sql applied, click tracking working
 
 ---
 
@@ -312,7 +327,7 @@ Without this, clicks track to 0 (redirects still work).
 | Issue | Decision |
 |-------|----------|
 | `user_id` in `links` table | Made nullable — anonymous users can create 1 link |
-| Dashboard data | Uses mock data until Supabase is configured |
+| Dashboard data | Real Supabase data — fully wired up |
 | Apple OAuth | Requires Apple Developer account ($99/yr) — defer |
 | Supabase URL validation | Supabase v2 throws on invalid URLs at instantiation — fixed with lazy `useRef` init |
 | Build with no env vars | Fixed: fallback to `https://placeholder.supabase.co` so `npm run build` passes |
