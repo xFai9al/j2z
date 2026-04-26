@@ -23,7 +23,7 @@ interface BlockEntry {
   created_at: string
 }
 
-const ADMIN_EMAIL = 'faisal@aba-alkhail.com'
+const ADMIN_EMAIL = 'faisal@aba-alkhail.com' // lowercase — Supabase normalizes emails
 
 const TXT = {
   en: {
