@@ -99,7 +99,7 @@ export default function J2zAuth() {
     { icon: '✨', title: t.b4_title, desc: t.b4_desc },
   ]
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || (typeof window !== 'undefined' ? window.location.origin : 'https://j2z.com')
 
   const handleOAuth = async (provider: 'google' | 'apple') => {
     setLoading(provider)
