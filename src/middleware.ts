@@ -9,6 +9,14 @@ function parseDevice(ua: string): string {
   return 'desktop'
 }
 
+function makeServiceClient() {
+  return createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co',
+    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key',
+    { cookies: { getAll: () => [], setAll: () => {} } }
+  )
+}
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
   const segments = pathname.split('/').filter(Boolean)
@@ -16,12 +24,7 @@ export async function middleware(request: NextRequest) {
   // Handle short-link redirects: single-segment paths that are not reserved
   if (segments.length === 1 && !RESERVED.has(segments[0])) {
     const slug = segments[0]
-
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co',
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-anon-key',
-      { cookies: { getAll: () => [], setAll: () => {} } }
-    )
+    const sb = makeServiceClient()
 
     const ua = request.headers.get('user-agent') ?? ''
     const country =
@@ -32,7 +35,7 @@ export async function middleware(request: NextRequest) {
     const referrer = request.headers.get('referer')?.slice(0, 500) ?? null
     const userAgent = ua.slice(0, 300)
 
-    const { data: link } = await supabase
+    const { data: link } = await sb
       .from('links')
       .select('id, destination_url')
       .eq('slug', slug)
@@ -40,18 +43,30 @@ export async function middleware(request: NextRequest) {
       .maybeSingle()
 
     if (link) {
-      supabase.rpc('track_click', {
+      // Try track_click (handles INSERT + counter atomically); fallback to direct INSERT
+      sb.rpc('track_click', {
         p_resource_type: 'link',
         p_resource_id: link.id,
         p_country: country,
         p_device_type: deviceType,
         p_referrer: referrer,
         p_user_agent: userAgent,
+      }).then(({ error }) => {
+        if (error) {
+          sb.from('clicks').insert({
+            resource_type: 'link',
+            resource_id: link.id,
+            country,
+            device_type: deviceType,
+            referrer,
+            user_agent: userAgent,
+          })
+        }
       })
       return NextResponse.redirect(link.destination_url)
     }
 
-    const { data: qr } = await supabase
+    const { data: qr } = await sb
       .from('qr_codes')
       .select('id, destination_url')
       .eq('slug', slug)
@@ -59,13 +74,24 @@ export async function middleware(request: NextRequest) {
       .maybeSingle()
 
     if (qr) {
-      supabase.rpc('track_click', {
+      sb.rpc('track_click', {
         p_resource_type: 'qr',
         p_resource_id: qr.id,
         p_country: country,
         p_device_type: deviceType,
         p_referrer: referrer,
         p_user_agent: userAgent,
+      }).then(({ error }) => {
+        if (error) {
+          sb.from('clicks').insert({
+            resource_type: 'qr',
+            resource_id: qr.id,
+            country,
+            device_type: deviceType,
+            referrer,
+            user_agent: userAgent,
+          })
+        }
       })
       return NextResponse.redirect(qr.destination_url)
     }
