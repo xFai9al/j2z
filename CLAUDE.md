@@ -241,6 +241,23 @@ In `.env.local` it is stored under BOTH `NEXT_PUBLIC_SUPABASE_ANON_KEY` and `NEX
 - ✅ Landing + Auth: added `touch-action:manipulation` + `prefers-reduced-motion` global rules
 - ✅ Committed and pushed (commit `162f654`)
 
+### Session 8 — Real Analytics + Settings + Click Tracking Fix
+- ✅ Fixed click tracking: middleware now calls `track_click` RPC (SECURITY DEFINER) instead of direct UPDATE (which was failing silently due to RLS)
+- ✅ Added device type + country headers (cf-ipcountry / x-vercel-ip-country) to middleware click tracking
+- ✅ Created `supabase/schema-additions.sql` — `track_click` Postgres function (run this if schema was already applied)
+- ✅ Added `track_click` function to `supabase/schema.sql` for fresh installs
+- ✅ Created `src/app/api/analytics/route.ts` — real analytics from `clicks` table (weekly, countries, devices)
+- ✅ Created `src/app/api/settings/route.ts` — PATCH: saves display_name to auth metadata + profiles table
+- ✅ Created `src/app/api/account/route.ts` — DELETE: deactivates all user data + signs out
+- ✅ Dashboard analytics tab: replaced hardcoded mock data with real data from `/api/analytics`
+  - Loading skeleton while fetching; "No data yet" empty state
+  - 3 stat cards (Total Clicks, QR Scans, This Week) — all real
+  - Weekly bar chart + devices + countries — all real
+- ✅ Dashboard overview tab: weekly chart + countries now use real analytics data
+- ✅ Dashboard settings tab: display name controlled input, save button calls `/api/settings`
+- ✅ Dashboard settings tab: delete account button calls DELETE `/api/account` with confirm dialog
+- ✅ Committed and pushed (this session)
+
 ### Session 7 — Polish (P7)
 - ✅ Created `src/app/not-found.tsx` — branded 404: coral "404" glyph, inline CSS, Cal Sans, back-home + dashboard links
 - ✅ Created `src/app/error.tsx` — global error boundary (client component), retry + back-home buttons
@@ -275,11 +292,18 @@ In `.env.local` it is stored under BOTH `NEXT_PUBLIC_SUPABASE_ANON_KEY` and `NEX
 - Update `NEXT_PUBLIC_SITE_URL` from `https://j2z.com` (already set)
 - Add production URL to Supabase auth redirects
 
-### Priority 7 — Polish
+### Priority 7 — Polish ✅ DONE (Sessions 7–8)
 - ✅ 404 page (`src/app/not-found.tsx`) — branded coral glyph, bilingual, back-home CTA
 - ✅ Error boundary (`src/app/error.tsx`) — client component, retry button
 - ✅ Loading states — dashboard skeleton (pulsing logo on auth wait, skeleton bars for bio tab)
+- ✅ Real analytics (session 8) — click tracking via `track_click` RPC + dashboard wired up
+- ✅ Settings save (session 8) — display name persisted to Supabase
+- ✅ Delete account (session 8) — deactivates data + signs out
 - Mobile testing — manual (user must test on device)
+
+### Priority 8 — Pending: Supabase `schema-additions.sql`
+**REQUIRED**: Run `supabase/schema-additions.sql` in Supabase SQL Editor to enable click tracking.
+Without this, clicks track to 0 (redirects still work).
 
 ---
 

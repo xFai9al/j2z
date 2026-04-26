@@ -3,6 +3,12 @@ import { NextRequest, NextResponse } from 'next/server'
 
 const RESERVED = new Set(['auth', 'dashboard', 'terms', 'privacy', 'api', 'u', 'not-found'])
 
+function parseDevice(ua: string): string {
+  if (/ipad/i.test(ua)) return 'tablet'
+  if (/mobile|android|iphone|ipod/i.test(ua)) return 'mobile'
+  return 'desktop'
+}
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
   const segments = pathname.split('/').filter(Boolean)
@@ -17,27 +23,50 @@ export async function middleware(request: NextRequest) {
       { cookies: { getAll: () => [], setAll: () => {} } }
     )
 
+    const ua = request.headers.get('user-agent') ?? ''
+    const country =
+      request.headers.get('cf-ipcountry') ??
+      request.headers.get('x-vercel-ip-country') ??
+      null
+    const deviceType = parseDevice(ua)
+    const referrer = request.headers.get('referer')?.slice(0, 500) ?? null
+    const userAgent = ua.slice(0, 300)
+
     const { data: link } = await supabase
       .from('links')
-      .select('id, destination_url, clicks')
+      .select('id, destination_url')
       .eq('slug', slug)
       .eq('is_active', true)
       .maybeSingle()
 
     if (link) {
-      supabase.from('links').update({ clicks: (link.clicks ?? 0) + 1 }).eq('id', link.id)
+      supabase.rpc('track_click', {
+        p_resource_type: 'link',
+        p_resource_id: link.id,
+        p_country: country,
+        p_device_type: deviceType,
+        p_referrer: referrer,
+        p_user_agent: userAgent,
+      })
       return NextResponse.redirect(link.destination_url)
     }
 
     const { data: qr } = await supabase
       .from('qr_codes')
-      .select('id, destination_url, scans')
+      .select('id, destination_url')
       .eq('slug', slug)
       .eq('is_active', true)
       .maybeSingle()
 
     if (qr) {
-      supabase.from('qr_codes').update({ scans: (qr.scans ?? 0) + 1 }).eq('id', qr.id)
+      supabase.rpc('track_click', {
+        p_resource_type: 'qr',
+        p_resource_id: qr.id,
+        p_country: country,
+        p_device_type: deviceType,
+        p_referrer: referrer,
+        p_user_agent: userAgent,
+      })
       return NextResponse.redirect(qr.destination_url)
     }
 

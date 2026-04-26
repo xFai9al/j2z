@@ -25,20 +25,10 @@ interface QrItem {
 }
 interface BioPage { id: string; username: string; display_name: string | null; bio: string | null; is_published: boolean }
 interface BioLink { id: string; title: string; url: string; sort_order: number }
-const WEEKLY = [12, 28, 19, 44, 36, 62, 48]
 const DAYS = { en: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'], ar: ['إث','ثلا','أرب','خمي','جمع','سبت','أحد'] }
-const COUNTRIES = [
-  { code:'SA', en:'Saudi Arabia', ar:'السعودية', pct:44, flag:'🇸🇦' },
-  { code:'AE', en:'UAE', ar:'الإمارات', pct:28, flag:'🇦🇪' },
-  { code:'KW', en:'Kuwait', ar:'الكويت', pct:14, flag:'🇰🇼' },
-  { code:'EG', en:'Egypt', ar:'مصر', pct:8, flag:'🇪🇬' },
-  { code:'OT', en:'Other', ar:'أخرى', pct:6, flag:'🌍' },
-]
-const DEVICES = [
-  { en:'Mobile', ar:'موبايل', pct:72, color:'#E8765C' },
-  { en:'Desktop', ar:'حاسوب', pct:22, color:'#8FA68E' },
-  { en:'Tablet', ar:'تابلت', pct:6, color:'#E8C66B' },
-]
+
+type CountryRow = { code:string; en:string; ar:string; pct:number; flag:string }
+type DeviceRow  = { en:string; ar:string; pct:number; color:string }
 
 const Logo = ({ s = 32 }: { s?: number }) => (
   <svg viewBox="0 0 60 60" width={s} height={s} fill="none">
@@ -244,6 +234,13 @@ export default function Dashboard() {
   const [editQrId, setEditQrId] = useState<string | null>(null)
   const [editDest, setEditDest] = useState('')
   const [saved, setSaved] = useState(false)
+  const [settingName, setSettingName] = useState('')
+  const [settingSaving, setSettingSaving] = useState(false)
+  const [analyticsLoaded, setAnalyticsLoaded] = useState(false)
+  const [analyticsWeekly, setAnalyticsWeekly] = useState<number[]>(Array(7).fill(0))
+  const [analyticsWeekTotal, setAnalyticsWeekTotal] = useState(0)
+  const [analyticsCountries, setAnalyticsCountries] = useState<CountryRow[]>([])
+  const [analyticsDevices, setAnalyticsDevices] = useState<DeviceRow[]>([])
   const [bioPage, setBioPage] = useState<BioPage | null>(null)
   const [bioLinks, setBioLinks] = useState<BioLink[]>([])
   const [bioLoaded, setBioLoaded] = useState(false)
@@ -275,6 +272,18 @@ export default function Dashboard() {
     if (data) setQrs(data.map(q => ({ id: q.id, slug: q.slug, url: q.destination_url, scans: q.scans ?? 0, created: q.created_at?.slice(0, 10) ?? '' })))
   }, [])
 
+  const fetchAnalytics = useCallback(async () => {
+    const res = await fetch('/api/analytics')
+    if (res.ok) {
+      const d = await res.json()
+      setAnalyticsWeekly(d.weekly ?? Array(7).fill(0))
+      setAnalyticsWeekTotal(d.weekTotal ?? 0)
+      if (d.countries?.length) setAnalyticsCountries(d.countries)
+      if (d.devices?.length) setAnalyticsDevices(d.devices)
+    }
+    setAnalyticsLoaded(true)
+  }, [])
+
   const fetchBio = useCallback(async () => {
     const res = await fetch('/api/bio')
     const data = await res.json()
@@ -292,8 +301,10 @@ export default function Dashboard() {
         router.replace('/auth')
       } else {
         setUser(data.user)
+        setSettingName(data.user.user_metadata?.full_name ?? data.user.user_metadata?.name ?? data.user.email?.split('@')[0] ?? '')
         fetchLinks(data.user.id)
         fetchQrs(data.user.id)
+        fetchAnalytics()
       }
     })
   }, [])
@@ -319,7 +330,8 @@ export default function Dashboard() {
       }, 50)
     }
     if (tab === 'bio' && !bioLoaded) fetchBio()
-  }, [tab, qrs, drawQR, bioLoaded, fetchBio])
+    if (tab === 'analytics' && !analyticsLoaded) fetchAnalytics()
+  }, [tab, qrs, drawQR, bioLoaded, fetchBio, analyticsLoaded, fetchAnalytics])
 
   const copyLink = (slug: string, id: string) => {
     navigator.clipboard.writeText(`j2z.com/${slug}`).catch(() => {})
@@ -488,10 +500,31 @@ export default function Dashboard() {
     })
   }
 
+  const saveSettings = async () => {
+    setSettingSaving(true)
+    await fetch('/api/settings', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ display_name: settingName }),
+    })
+    setSaved(true)
+    setSettingSaving(false)
+    setTimeout(() => setSaved(false), 2000)
+  }
+
+  const deleteAccount = async () => {
+    const msg = lang === 'en'
+      ? 'Delete your account? All data will be deactivated. This cannot be undone.'
+      : 'حذف حسابك؟ سيتم إلغاء تفعيل جميع بياناتك. لا يمكن التراجع.'
+    if (!window.confirm(msg)) return
+    await fetch('/api/account', { method: 'DELETE' })
+    router.replace('/auth')
+  }
+
   const totalClicks = links.reduce((s, l) => s + l.clicks, 0)
   const totalScans = qrs.reduce((s, q) => s + q.scans, 0)
-  const maxBar = Math.max(...WEEKLY)
-  const weekTotal = WEEKLY.reduce((a, b) => a + b, 0)
+  const maxBar = Math.max(...analyticsWeekly, 1)
+  const weekTotal = analyticsWeekTotal || analyticsWeekly.reduce((a, b) => a + b, 0)
 
   const displayName = user?.user_metadata?.full_name ?? user?.user_metadata?.name ?? user?.email?.split('@')[0] ?? '...'
   const avatarLetter = displayName[0]?.toUpperCase() ?? '?'
@@ -808,7 +841,7 @@ body { font-family: 'Space Grotesk', 'Tajawal', sans-serif; -webkit-font-smoothi
                 <div className="card">
                   <div className="card-hd">{t.weekly} <span className="card-act" onClick={() => setTab('analytics')}>{t.view_all}</span></div>
                   <div className="bar-chart">
-                    {WEEKLY.map((v, i) => (
+                    {analyticsWeekly.map((v, i) => (
                       <div key={i} className="bc-col">
                         <div className={`bc-bar ${i === 6 ? 'lit' : 'dim'}`} style={{height:`${(v/maxBar)*100}%`}} title={`${v} ${t.clicks}`}/>
                         <span className="bc-day">{DAYS[lang][i]}</span>
@@ -819,17 +852,20 @@ body { font-family: 'Space Grotesk', 'Tajawal', sans-serif; -webkit-font-smoothi
                 </div>
                 <div className="card">
                   <div className="card-hd">{t.countries}</div>
-                  <div className="prog-list">
-                    {COUNTRIES.map(c => (
-                      <div key={c.code} className="prog-row">
-                        <div className="prog-info">
-                          <span className="prog-label"><span>{c.flag}</span><span>{lang === 'en' ? c.en : c.ar}</span></span>
-                          <span className="prog-pct">{c.pct}%</span>
+                  {analyticsCountries.length === 0
+                    ? <div style={{fontSize:13,color:'var(--ink3)',textAlign:'center',padding:'16px 0'}}>{lang==='en'?'No click data yet':'لا توجد بيانات بعد'}</div>
+                    : <div className="prog-list">
+                      {analyticsCountries.map(c => (
+                        <div key={c.code} className="prog-row">
+                          <div className="prog-info">
+                            <span className="prog-label"><span>{c.flag}</span><span>{lang === 'en' ? c.en : c.ar}</span></span>
+                            <span className="prog-pct">{c.pct}%</span>
+                          </div>
+                          <div className="prog-track"><div className="prog-fill" style={{width:`${c.pct}%`}}/></div>
                         </div>
-                        <div className="prog-track"><div className="prog-fill" style={{width:`${c.pct}%`}}/></div>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  }
                 </div>
               </div>
               <div className="card">
@@ -1074,70 +1110,89 @@ body { font-family: 'Space Grotesk', 'Tajawal', sans-serif; -webkit-font-smoothi
               <div className="pg-head"><h1 className="pg-title">{t.analytics}</h1></div>
               <div className="stat-grid">
                 {[
-                  {lbl:t.total_clicks, val:totalClicks.toLocaleString(), cls:'c-coral', ico:'cursor', bg:'bg-coral', delta:<><b>+18%</b> {t.vs_last}</>},
-                  {lbl:t.total_scans, val:totalScans, cls:'', ico:'radio', bg:'bg-warm', delta:<><b>+24%</b> {t.vs_last}</>},
+                  {lbl:t.total_clicks, val:totalClicks.toLocaleString(), cls:'c-coral', ico:'cursor', bg:'bg-coral'},
+                  {lbl:t.total_scans, val:totalScans.toLocaleString(), cls:'', ico:'radio', bg:'bg-warm'},
+                  {lbl:t.this_week, val:weekTotal.toLocaleString(), cls:'c-sage', ico:'link', bg:'bg-sage'},
                 ].map((s, i) => (
                   <div key={i} className="stat-card">
-                    <div className="stat-top"><span className="stat-lbl">{s.lbl}</span><div className={`stat-ico ${s.bg}`} aria-hidden="true">{s.ico === 'cursor' ? <IcoCursor s={15} c="#D45A3F"/> : <IcoRadio s={15} c="var(--ink2)"/>}</div></div>
+                    <div className="stat-top"><span className="stat-lbl">{s.lbl}</span><div className={`stat-ico ${s.bg}`} aria-hidden="true">{s.ico === 'cursor' ? <IcoCursor s={15} c="#D45A3F"/> : s.ico === 'link' ? <IcoLink s={15} c="#3E5F3C"/> : <IcoRadio s={15} c="var(--ink2)"/>}</div></div>
                     <div className={`stat-num ${s.cls}`}>{s.val}</div>
-                    <div className="stat-delta">{s.delta}</div>
                   </div>
                 ))}
               </div>
-              <div className="grid2">
-                <div className="card">
-                  <div className="card-hd">{t.weekly}</div>
-                  <div className="bar-chart">
-                    {WEEKLY.map((v, i) => (
-                      <div key={i} className="bc-col">
-                        <div className={`bc-bar ${i === 6 ? 'lit' : 'dim'}`} style={{height:`${(v/maxBar)*100}%`}}/>
-                        <span className="bc-day">{DAYS[lang][i]}</span>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="chart-foot"><span>{t.this_week}</span><b>{weekTotal} {t.clicks}</b></div>
-                </div>
-                <div className="card">
-                  <div className="card-hd">{t.devices}</div>
-                  <div className="prog-list">
-                    {DEVICES.map(d => (
-                      <div key={d.en} className="prog-row">
-                        <div className="prog-info">
-                          <span className="prog-label"><span className="prog-dev-dot" style={{background:d.color}}/><span>{lang === 'en' ? d.en : d.ar}</span></span>
-                          <span className="prog-pct">{d.pct}%</span>
-                        </div>
-                        <div className="prog-track"><div className="prog-fill" style={{width:`${d.pct}%`, background:d.color}}/></div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-              <div className="card">
-                <div className="card-hd">{t.countries}</div>
-                <div className="prog-list">
-                  {COUNTRIES.map(c => (
-                    <div key={c.code} className="prog-row">
-                      <div className="prog-info">
-                        <span className="prog-label"><span>{c.flag}</span><span>{lang === 'en' ? c.en : c.ar}</span></span>
-                        <span className="prog-pct">{c.pct}%</span>
-                      </div>
-                      <div className="prog-track"><div className="prog-fill" style={{width:`${c.pct}%`}}/></div>
-                    </div>
+
+              {!analyticsLoaded && (
+                <div style={{display:'flex',flexDirection:'column',gap:12,maxWidth:600}}>
+                  {[100,75,90,60].map((w,i) => (
+                    <div key={i} className="skel-bar" style={{width:`${w}%`,height:i===0?80:28,borderRadius:10,animationDelay:`${i*.08}s`}}/>
                   ))}
                 </div>
-              </div>
+              )}
+
+              {analyticsLoaded && <>
+                <div className="grid2">
+                  <div className="card">
+                    <div className="card-hd">{t.weekly}</div>
+                    <div className="bar-chart">
+                      {analyticsWeekly.map((v, i) => (
+                        <div key={i} className="bc-col">
+                          <div className={`bc-bar ${i === 6 ? 'lit' : 'dim'}`} style={{height:`${(v/maxBar)*100}%`}} title={`${v} ${t.clicks}`}/>
+                          <span className="bc-day">{DAYS[lang][i]}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="chart-foot"><span>{t.this_week}</span><b>{weekTotal} {t.clicks}</b></div>
+                  </div>
+                  <div className="card">
+                    <div className="card-hd">{t.devices}</div>
+                    {analyticsDevices.length === 0
+                      ? <div style={{fontSize:13,color:'var(--ink3)',textAlign:'center',padding:'16px 0'}}>{lang==='en'?'No data yet':'لا توجد بيانات بعد'}</div>
+                      : <div className="prog-list">
+                        {analyticsDevices.map(d => (
+                          <div key={d.en} className="prog-row">
+                            <div className="prog-info">
+                              <span className="prog-label"><span className="prog-dev-dot" style={{background:d.color}}/><span>{lang === 'en' ? d.en : d.ar}</span></span>
+                              <span className="prog-pct">{d.pct}%</span>
+                            </div>
+                            <div className="prog-track"><div className="prog-fill" style={{width:`${d.pct}%`, background:d.color}}/></div>
+                          </div>
+                        ))}
+                      </div>
+                    }
+                  </div>
+                </div>
+                <div className="card">
+                  <div className="card-hd">{t.countries}</div>
+                  {analyticsCountries.length === 0
+                    ? <div style={{fontSize:13,color:'var(--ink3)',textAlign:'center',padding:'16px 0'}}>{lang==='en'?'No click data yet — share your links to start tracking':'لا توجد بيانات بعد — شارك روابطك لبدء التتبع'}</div>
+                    : <div className="prog-list">
+                      {analyticsCountries.map(c => (
+                        <div key={c.code} className="prog-row">
+                          <div className="prog-info">
+                            <span className="prog-label"><span>{c.flag}</span><span>{lang === 'en' ? c.en : c.ar}</span></span>
+                            <span className="prog-pct">{c.pct}%</span>
+                          </div>
+                          <div className="prog-track"><div className="prog-fill" style={{width:`${c.pct}%`}}/></div>
+                        </div>
+                      ))}
+                    </div>
+                  }
+                </div>
+              </>}
             </>}
 
             {tab === 'settings' && <>
               <div className="pg-head"><h1 className="pg-title">{t.settings}</h1></div>
               <div className="card" style={{maxWidth:520}}>
                 <div className="sett-form">
-                  {[
-                    {lbl:t.s_name, val:displayName, dir},
-                    {lbl:t.s_email, val:user.email ?? '', dir:'ltr'},
-                  ].map((f, i) => (
-                    <div key={i}><div className="f-lbl">{f.lbl}</div><input className="f-in" defaultValue={f.val} dir={f.dir}/></div>
-                  ))}
+                  <div>
+                    <div className="f-lbl">{t.s_name}</div>
+                    <input className="f-in" value={settingName} onChange={e => setSettingName(e.target.value)} dir={dir}/>
+                  </div>
+                  <div>
+                    <div className="f-lbl">{t.s_email}</div>
+                    <input className="f-in" value={user.email ?? ''} readOnly dir="ltr" style={{opacity:.7,cursor:'not-allowed'}}/>
+                  </div>
                   <div>
                     <div className="f-lbl">{t.s_lang}</div>
                     <select className="f-in" value={lang} onChange={e => setLang(e.target.value as Lang)}>
@@ -1155,14 +1210,14 @@ body { font-family: 'Space Grotesk', 'Tajawal', sans-serif; -webkit-font-smoothi
                       ))}
                     </div>
                   </div>
-                  <button className={`save-btn ${saved ? 'ok' : ''}`} onClick={() => { setSaved(true); setTimeout(() => setSaved(false), 2000); }}>
-                    {saved ? t.s_saved : t.s_save}
+                  <button className={`save-btn ${saved ? 'ok' : ''}`} onClick={saveSettings} disabled={settingSaving}>
+                    {saved ? t.s_saved : settingSaving ? (lang==='en'?'Saving...':'جارٍ الحفظ...') : t.s_save}
                   </button>
                 </div>
                 <div className="danger-box">
                   <div className="danger-ttl" style={{display:'flex',alignItems:'center',gap:6}}><IcoWarn s={15} c="#C03030"/> {t.s_danger}</div>
-                  <p className="danger-sub">{lang === 'en' ? 'Once deleted, your account and all data cannot be recovered.' : 'بمجرد الحذف، لا يمكن استعادة حسابك وبياناتك.'}</p>
-                  <button className="danger-btn">{t.s_delete}</button>
+                  <p className="danger-sub">{lang === 'en' ? 'Deactivates all your links and signs you out. Contact support to fully remove your account.' : 'يلغي تفعيل جميع روابطك ويسجل خروجك. تواصل مع الدعم لحذف الحساب نهائياً.'}</p>
+                  <button className="danger-btn" onClick={deleteAccount}>{t.s_delete}</button>
                 </div>
               </div>
             </>}
