@@ -92,13 +92,6 @@ export default function J2zAuth() {
   }
   const t = T[lang]
 
-  const benefits = [
-    { icon: '🔗', title: t.b1_title, desc: t.b1_desc },
-    { icon: '⬛', title: t.b2_title, desc: t.b2_desc },
-    { icon: '📊', title: t.b3_title, desc: t.b3_desc },
-    { icon: '✨', title: t.b4_title, desc: t.b4_desc },
-  ]
-
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || (typeof window !== 'undefined' ? window.location.origin : 'https://j2z.com')
 
   const handleOAuth = async (provider: 'google' | 'apple') => {
@@ -158,6 +151,48 @@ export default function J2zAuth() {
       <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>
     </svg>
   )
+  const BenefitLinkIcon = () => (
+    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.75)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+    </svg>
+  )
+  const BenefitQrIcon = () => (
+    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.75)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+      <rect x="3" y="14" width="7" height="7" rx="1"/>
+      <line x1="6" y1="6" x2="6.01" y2="6" strokeWidth="3"/><line x1="17" y1="6" x2="17.01" y2="6" strokeWidth="3"/>
+      <line x1="6" y1="17" x2="6.01" y2="17" strokeWidth="3"/>
+      <line x1="14" y1="14" x2="21" y2="14"/><line x1="14" y1="17" x2="17" y2="17"/>
+      <line x1="20" y1="17" x2="21" y2="17"/><line x1="14" y1="20" x2="21" y2="20"/>
+    </svg>
+  )
+  const BenefitChartIcon = () => (
+    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.75)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/>
+      <line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/>
+    </svg>
+  )
+  const BenefitBioIcon = () => (
+    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.75)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+      <circle cx="12" cy="7" r="4"/>
+    </svg>
+  )
+  const VerifyMailIcon = () => (
+    <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="var(--sage)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+      <polyline points="22,6 12,13 2,6"/>
+    </svg>
+  )
+
+  const benefits = [
+    { Icon: BenefitLinkIcon, title: t.b1_title, desc: t.b1_desc },
+    { Icon: BenefitQrIcon, title: t.b2_title, desc: t.b2_desc },
+    { Icon: BenefitChartIcon, title: t.b3_title, desc: t.b3_desc },
+    { Icon: BenefitBioIcon, title: t.b4_title, desc: t.b4_desc },
+  ]
+
   const EyeIcon = ({ open }: { open: boolean }) => open ? (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
@@ -358,7 +393,7 @@ button,a{touch-action:manipulation;}
 
           {mode === 'verify' && (
             <div className="form-area verify-wrap" key="verify">
-              <div className="verify-icon">📬</div>
+              <div className="verify-icon"><VerifyMailIcon /></div>
               <h1 className="form-headline">{t.verify_headline}</h1>
               <p className="form-sub">{t.verify_sub_1}</p>
               <div className="verify-email-chip">{email}</div>
@@ -390,7 +425,7 @@ button,a{touch-action:manipulation;}
             <div className="benefit-list">
               {benefits.map((b, i) => (
                 <div key={i} className="benefit-item">
-                  <div className="benefit-icon">{b.icon}</div>
+                  <div className="benefit-icon"><b.Icon /></div>
                   <div className="benefit-text"><h4>{b.title}</h4><p>{b.desc}</p></div>
                 </div>
               ))}

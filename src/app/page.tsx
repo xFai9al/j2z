@@ -351,6 +351,20 @@ body{background:var(--paper);color:var(--ink);font-family:'Space Grotesk','Tajaw
 .prompt-close:hover{color:var(--ink);}
 button,a{touch-action:manipulation;}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:0.01ms!important;transition-duration:0.01ms!important;}}
+.hero-demo-wrap{max-width:580px;margin:18px auto 0;}
+.hero-demo{display:flex;align-items:center;gap:10px;background:white;border:1.5px solid var(--border);border-radius:12px;padding:11px 16px;box-shadow:var(--shadow-sm);overflow:hidden;}
+.demo-before{font-family:monospace;color:var(--ink-mute);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;}
+.demo-arrow-box{flex-shrink:0;width:26px;height:26px;background:var(--coral-soft);border-radius:7px;display:flex;align-items:center;justify-content:center;}
+.demo-after{font-family:monospace;color:var(--coral-deep);font-weight:700;white-space:nowrap;font-size:13px;}
+.demo-after span{color:var(--coral);}
+.stats-strip{padding:20px 20px;background:var(--paper);border-bottom:1px solid var(--border);}
+.stats-inner{max-width:660px;margin:0 auto;display:flex;justify-content:center;align-items:center;flex-wrap:wrap;}
+.stat-item{text-align:center;padding:8px 32px;position:relative;}
+.stat-item:not(:last-child)::after{content:'';position:absolute;right:0;top:50%;transform:translateY(-50%);height:28px;width:1px;background:var(--border);}
+[dir=rtl] .stat-item:not(:last-child)::after{right:auto;left:0;}
+.stat-num{display:block;font-family:'Cal Sans','Tajawal',sans-serif;font-size:26px;font-weight:700;color:var(--coral-deep);letter-spacing:-.03em;line-height:1.1;}
+.stat-label{display:block;font-size:12px;color:var(--ink-mute);margin-top:2px;font-weight:500;}
+@media(max-width:480px){.stat-item{padding:6px 16px;}.stat-item:not(:last-child)::after{display:none;}}
 `
 
   return (
@@ -414,8 +428,34 @@ button,a{touch-action:manipulation;}
               <span className="trust-item"><span className="check">✓</span> {t.trust_2}</span>
               <span className="trust-item"><span className="check">✓</span> {t.trust_3}</span>
             </div>
+            <div className="hero-demo-wrap">
+              <div className="hero-demo">
+                <span className="demo-before">https://www.youtube.com/watch?v=dQw4w9WgXcQ&utm_source=social&ref=home</span>
+                <div className="demo-arrow-box">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--coral-deep)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+                  </svg>
+                </div>
+                <span className="demo-after">j2z.com/<span>yt-vid</span></span>
+              </div>
+            </div>
           </div>
         </section>
+
+        <div className="stats-strip">
+          <div className="stats-inner">
+            {[
+              {num:'10K+', ar:'+١٠ آلاف', label:'Links created', ar_label:'رابط أُنشئ'},
+              {num:'190+', ar:'+١٩٠', label:'Countries', ar_label:'دولة'},
+              {num:'100%', ar:'١٠٠٪', label:'Free forever', ar_label:'مجاني للأبد'},
+            ].map((s,i) => (
+              <div key={i} className="stat-item">
+                <span className="stat-num">{lang === 'en' ? s.num : s.ar}</span>
+                <span className="stat-label">{lang === 'en' ? s.label : s.ar_label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
 
         <section className="section section-cream" id="qr">
           <div className="section-inner">
