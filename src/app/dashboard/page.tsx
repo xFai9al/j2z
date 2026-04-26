@@ -591,8 +591,13 @@ body { font-family: 'Space Grotesk', 'Tajawal', sans-serif; -webkit-font-smoothi
 .pg-title { font-family: 'Cal Sans', 'Tajawal', sans-serif; font-size: clamp(20px, 3vw, 28px); font-weight: 700; letter-spacing: -0.02em; margin-bottom: 3px; color: var(--ink); }
 .pg-sub { font-size: 14px; color: var(--ink2); }
 .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 20px; }
-.stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 16px; transition: all .2s; }
-.stat-card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.06); }
+.stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 16px; transition: all .2s; position: relative; overflow: hidden; }
+.stat-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.08); }
+.stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; border-radius: 14px 14px 0 0; }
+.stat-card.accent-coral::before { background: linear-gradient(90deg, #D45A3F, #F4A593); }
+.stat-card.accent-sage::before { background: linear-gradient(90deg, #8FA68E, #C2D4C1); }
+.stat-card.accent-butter::before { background: linear-gradient(90deg, #E8C66B, #F5E0A0); }
+.stat-card.accent-warm::before { background: linear-gradient(90deg, #A89F92, #D4CFC8); }
 .stat-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
 .stat-lbl { font-size: 11px; color: var(--ink3); font-weight: 600; text-transform: uppercase; letter-spacing: .5px; }
 .stat-ico { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; }
@@ -607,12 +612,10 @@ body { font-family: 'Space Grotesk', 'Tajawal', sans-serif; -webkit-font-smoothi
 .card-hd { font-family: 'Cal Sans', sans-serif; font-size: 14px; font-weight: 700; color: var(--ink); margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between; }
 .card-act { font-size: 12px; color: #D45A3F; font-weight: 600; cursor: pointer; font-family: 'Space Grotesk', sans-serif; }
 .card-act:hover { text-decoration: underline; }
-.bar-chart { display: flex; align-items: flex-end; gap: 5px; height: 80px; margin-bottom: 8px; }
+.bar-chart { display: flex; align-items: flex-end; gap: 5px; height: 110px; margin-bottom: 8px; }
 .bc-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; }
-.bc-bar { width: 100%; border-radius: 4px 4px 0 0; min-height: 4px; cursor: pointer; transition: all .2s; }
-.bc-bar.dim { background: var(--surface2); border: 1px solid var(--border); }
-.bc-bar.lit { background: #E8765C; }
-.bc-bar.dim:hover, .bc-bar.lit:hover { background: #D45A3F; transform: scaleY(1.04); transform-origin: bottom; }
+.bc-bar { width: 100%; border-radius: 5px 5px 0 0; min-height: 4px; cursor: pointer; transition: all .2s; background: #E8765C; }
+.bc-bar:hover { background: #D45A3F; transform: scaleY(1.05); transform-origin: bottom; box-shadow: 0 4px 12px rgba(212,90,63,.25); }
 .bc-day { font-size: 10px; color: var(--ink3); font-weight: 500; }
 .chart-foot { display: flex; justify-content: space-between; font-size: 12px; color: var(--ink2); }
 .chart-foot b { color: var(--ink); }
@@ -812,17 +815,17 @@ body { font-family: 'Space Grotesk', 'Tajawal', sans-serif; -webkit-font-smoothi
 
             {tab === 'overview' && <>
               <div className="pg-head">
-                <h1 className="pg-title">{greeting}, {displayName} 👋</h1>
+                <h1 className="pg-title">{greeting}, {displayName}</h1>
                 <p className="pg-sub">{t.overview_sub}</p>
               </div>
               <div className="stat-grid">
                 {[
-                  { lbl:t.total_clicks, val:totalClicks.toLocaleString(), cls:'c-coral', ico:'cursor', bg:'bg-coral', delta:<><b>+18%</b> {t.vs_last}</> },
-                  { lbl:t.total_links,  val:links.length,                 cls:'c-sage',  ico:'link',   bg:'bg-sage',  delta:`${t.this_week}: +2` },
-                  { lbl:t.total_qr,     val:qrs.length,                   cls:'c-butter', ico:'qr',   bg:'bg-butter', delta:`${t.this_week}: +1` },
-                  { lbl:t.total_scans,  val:totalScans.toLocaleString(),   cls:'',        ico:'radio',  bg:'bg-warm',  delta:<><b>+24%</b> {t.vs_last}</> },
+                  { lbl:t.total_clicks, val:totalClicks.toLocaleString(), cls:'c-coral', ico:'cursor', bg:'bg-coral', delta:<><b>+18%</b> {t.vs_last}</>, accent:'accent-coral' },
+                  { lbl:t.total_links,  val:links.length,                 cls:'c-sage',  ico:'link',   bg:'bg-sage',  delta:`${t.this_week}: +2`,          accent:'accent-sage' },
+                  { lbl:t.total_qr,     val:qrs.length,                   cls:'c-butter', ico:'qr',   bg:'bg-butter', delta:`${t.this_week}: +1`,          accent:'accent-butter' },
+                  { lbl:t.total_scans,  val:totalScans.toLocaleString(),   cls:'',        ico:'radio',  bg:'bg-warm',  delta:<><b>+24%</b> {t.vs_last}</>, accent:'accent-warm' },
                 ].map((s, i) => (
-                  <div key={i} className="stat-card">
+                  <div key={i} className={`stat-card ${s.accent}`}>
                     <div className="stat-top">
                       <span className="stat-lbl">{s.lbl}</span>
                       <div className={`stat-ico ${s.bg}`} aria-hidden="true">
@@ -843,7 +846,7 @@ body { font-family: 'Space Grotesk', 'Tajawal', sans-serif; -webkit-font-smoothi
                   <div className="bar-chart">
                     {analyticsWeekly.map((v, i) => (
                       <div key={i} className="bc-col">
-                        <div className={`bc-bar ${i === 6 ? 'lit' : 'dim'}`} style={{height:`${(v/maxBar)*100}%`}} title={`${v} ${t.clicks}`}/>
+                        <div className="bc-bar" style={{height:`${(v/maxBar)*100}%`, opacity: 0.25 + (i/6)*0.75}} title={`${v} ${t.clicks}`}/>
                         <span className="bc-day">{DAYS[lang][i]}</span>
                       </div>
                     ))}
@@ -1110,11 +1113,11 @@ body { font-family: 'Space Grotesk', 'Tajawal', sans-serif; -webkit-font-smoothi
               <div className="pg-head"><h1 className="pg-title">{t.analytics}</h1></div>
               <div className="stat-grid">
                 {[
-                  {lbl:t.total_clicks, val:totalClicks.toLocaleString(), cls:'c-coral', ico:'cursor', bg:'bg-coral'},
-                  {lbl:t.total_scans, val:totalScans.toLocaleString(), cls:'', ico:'radio', bg:'bg-warm'},
-                  {lbl:t.this_week, val:weekTotal.toLocaleString(), cls:'c-sage', ico:'link', bg:'bg-sage'},
+                  {lbl:t.total_clicks, val:totalClicks.toLocaleString(), cls:'c-coral', ico:'cursor', bg:'bg-coral', accent:'accent-coral'},
+                  {lbl:t.total_scans, val:totalScans.toLocaleString(), cls:'', ico:'radio', bg:'bg-warm', accent:'accent-warm'},
+                  {lbl:t.this_week, val:weekTotal.toLocaleString(), cls:'c-sage', ico:'link', bg:'bg-sage', accent:'accent-sage'},
                 ].map((s, i) => (
-                  <div key={i} className="stat-card">
+                  <div key={i} className={`stat-card ${s.accent}`}>
                     <div className="stat-top"><span className="stat-lbl">{s.lbl}</span><div className={`stat-ico ${s.bg}`} aria-hidden="true">{s.ico === 'cursor' ? <IcoCursor s={15} c="#D45A3F"/> : s.ico === 'link' ? <IcoLink s={15} c="#3E5F3C"/> : <IcoRadio s={15} c="var(--ink2)"/>}</div></div>
                     <div className={`stat-num ${s.cls}`}>{s.val}</div>
                   </div>
@@ -1136,7 +1139,7 @@ body { font-family: 'Space Grotesk', 'Tajawal', sans-serif; -webkit-font-smoothi
                     <div className="bar-chart">
                       {analyticsWeekly.map((v, i) => (
                         <div key={i} className="bc-col">
-                          <div className={`bc-bar ${i === 6 ? 'lit' : 'dim'}`} style={{height:`${(v/maxBar)*100}%`}} title={`${v} ${t.clicks}`}/>
+                          <div className="bc-bar" style={{height:`${(v/maxBar)*100}%`, opacity: 0.25 + (i/6)*0.75}} title={`${v} ${t.clicks}`}/>
                           <span className="bc-day">{DAYS[lang][i]}</span>
                         </div>
                       ))}
