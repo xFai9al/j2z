@@ -114,7 +114,7 @@ body { background: #FBFAF7; color: #2F2A24; font-family: 'Space Grotesk', 'Tajaw
 .nav { background: rgba(251,250,247,0.9); backdrop-filter: blur(12px); border-bottom: 1px solid #E8E2D6; padding: 14px 20px; position: sticky; top: 0; z-index: 50; display: flex; align-items: center; justify-content: space-between; }
 .logo-row { display: flex; align-items: center; gap: 8px; cursor: pointer; text-decoration: none; color: inherit; }
 .logo-name { font-size: 20px; font-weight: 700; letter-spacing: -0.04em; }
-.lang-btn { background: #F5F2EC; border: 1px solid #E8E2D6; padding: 7px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit; }
+.lang-btn { background: #F5F2EC; border: 1px solid #E8E2D6; padding: 0 14px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit; min-height: 44px; display: inline-flex; align-items: center; }
 .lang-btn:hover { background: #EFEAE0; }
 .page { max-width: 800px; margin: 0 auto; padding: 40px 24px 80px; }
 .head { text-align: center; margin-bottom: 32px; }
@@ -154,7 +154,7 @@ export default function LegalContent({ defaultTab = 'terms' }: { defaultTab?: Ta
             <Logo s={30}/>
             <span className="logo-name">J2z</span>
           </a>
-          <button className="lang-btn" onClick={() => setLang(lang === 'en' ? 'ar' : 'en')}>
+          <button className="lang-btn" onClick={() => setLang(lang === 'en' ? 'ar' : 'en')} aria-label="Switch language">
             {lang === 'en' ? 'العربية' : 'English'}
           </button>
         </nav>

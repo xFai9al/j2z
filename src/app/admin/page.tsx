@@ -216,9 +216,9 @@ a { text-decoration: none; color: inherit; }
 .adm-wordmark { font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 700; letter-spacing: -0.04em; color: #FBFAF7; }
 .adm-badge { background: #D45A3F; color: white; font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 100px; text-transform: uppercase; letter-spacing: .5px; }
 .adm-top-right { display: flex; align-items: center; gap: 6px; }
-.adm-ico-btn { min-width: 40px; height: 40px; padding: 0 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,.12); background: transparent; color: rgba(255,255,255,.6); font-size: 12px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; transition: all .15s; touch-action: manipulation; white-space: nowrap; }
+.adm-ico-btn { min-width: 44px; min-height: 44px; padding: 0 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,.12); background: transparent; color: rgba(255,255,255,.6); font-size: 12px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; transition: all .15s; touch-action: manipulation; white-space: nowrap; }
 .adm-ico-btn:hover { border-color: rgba(255,255,255,.35); color: white; background: rgba(255,255,255,.06); }
-.adm-logout-btn { min-width: 40px; height: 40px; padding: 0 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,.08); background: transparent; color: rgba(255,255,255,.45); font-size: 12px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all .15s; touch-action: manipulation; white-space: nowrap; }
+.adm-logout-btn { min-width: 44px; min-height: 44px; padding: 0 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,.08); background: transparent; color: rgba(255,255,255,.45); font-size: 12px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all .15s; touch-action: manipulation; white-space: nowrap; }
 .adm-logout-btn:hover { color: #F4A593; border-color: rgba(244,165,147,.3); background: rgba(212,90,63,.08); }
 .adm-main { max-width: 1100px; margin: 0 auto; padding: 28px 22px 60px; }
 .adm-head { margin-bottom: 24px; }
@@ -262,13 +262,13 @@ a { text-decoration: none; color: inherit; }
 .bl-input { flex: 1; min-width: 140px; padding: 9px 12px; background: var(--input-bg); border: 1.5px solid var(--border); border-radius: 10px; font-size: 13px; color: var(--ink); outline: none; transition: border-color .15s; direction: ltr; }
 .bl-input:focus { border-color: #D45A3F; box-shadow: 0 0 0 3px rgba(212,90,63,.12); }
 .bl-select { padding: 9px 12px; background: var(--input-bg); border: 1.5px solid var(--border); border-radius: 10px; font-size: 13px; color: var(--ink); outline: none; cursor: pointer; }
-.bl-add { padding: 9px 18px; background: #E8765C; color: white; border: none; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer; transition: all .15s; white-space: nowrap; touch-action: manipulation; min-height: 40px; }
+.bl-add { padding: 9px 18px; background: #E8765C; color: white; border: none; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer; transition: all .15s; white-space: nowrap; touch-action: manipulation; min-height: 44px; }
 .bl-add:hover { background: #D45A3F; transform: translateY(-1px); }
 .bl-add:disabled { background: var(--muted); cursor: not-allowed; transform: none; }
 .bl-row { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 10px; background: var(--input-bg); border: 1px solid var(--border); margin-bottom: 7px; flex-wrap: wrap; }
 .bl-pattern { font-family: monospace; font-size: 13px; font-weight: 600; color: var(--ink); flex: 1; direction: ltr; min-width: 120px; }
 .bl-reason { font-size: 11px; color: var(--muted); direction: ltr; }
-.bl-del { padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border); background: transparent; color: var(--muted); font-size: 11px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; transition: all .15s; touch-action: manipulation; min-height: 32px; flex-shrink: 0; }
+.bl-del { padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border); background: transparent; color: var(--muted); font-size: 11px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; transition: all .15s; touch-action: manipulation; min-height: 36px; flex-shrink: 0; }
 .bl-del:hover { border-color: #E05252; color: #E05252; background: #FDEAEA; }
 .skel-wrap { display: flex; min-height: 100vh; align-items: center; justify-content: center; background: #FBFAF7; flex-direction: column; gap: 14px; }
 .skel-logo { animation: skelPulse 1.4s ease-in-out infinite; }
@@ -332,7 +332,7 @@ a { text-decoration: none; color: inherit; }
             >
               {dark ? <IcoSun s={15} c="currentColor" /> : <IcoMoon s={15} c="currentColor" />}
             </button>
-            <button className="adm-ico-btn" onClick={() => setLang(l => l === 'en' ? 'ar' : 'en')}>
+            <button className="adm-ico-btn" onClick={() => setLang(l => l === 'en' ? 'ar' : 'en')} aria-label="Switch language">
               {lang === 'en' ? 'ع' : 'EN'}
             </button>
             <button className="adm-logout-btn" onClick={handleLogout} aria-label={t.logout}>
