@@ -22,15 +22,9 @@ export async function POST(req: NextRequest) {
 
   if (!page) return NextResponse.json({ error: 'No bio page found' }, { status: 404 })
 
-  const { count } = await sb
-    .from('bio_links')
-    .select('*', { count: 'exact', head: true })
-    .eq('bio_page_id', page.id)
-    .eq('is_active', true)
-
   const { data, error } = await sb
     .from('bio_links')
-    .insert({ bio_page_id: page.id, title: title.trim(), url: url.trim(), sort_order: count ?? 0 })
+    .insert({ bio_page_id: page.id, title: title.trim(), url: url.trim(), sort_order: Date.now() })
     .select()
     .single()
 

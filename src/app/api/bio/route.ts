@@ -47,12 +47,15 @@ export async function PATCH(req: NextRequest) {
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const body = await req.json()
-  const { display_name, bio, is_published } = body
+  const { display_name, bio, is_published, accent_color, background_color, avatar_url } = body
 
   const updates: Record<string, unknown> = { updated_at: new Date().toISOString() }
   if (display_name !== undefined) updates.display_name = display_name
   if (bio !== undefined) updates.bio = bio
   if (is_published !== undefined) updates.is_published = is_published
+  if (accent_color !== undefined) updates.accent_color = accent_color
+  if (background_color !== undefined) updates.background_color = background_color
+  if (avatar_url !== undefined) updates.avatar_url = avatar_url
 
   const { data, error } = await sb
     .from('bio_pages')

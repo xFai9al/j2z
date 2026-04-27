@@ -5,7 +5,7 @@ import type { Metadata } from 'next'
 interface BioLink { id: string; title: string; url: string; sort_order: number }
 interface BioPage {
   id: string; username: string; display_name: string | null; bio: string | null
-  accent_color: string; background_color: string
+  accent_color: string; background_color: string; avatar_url: string | null
   bio_links: (BioLink & { is_active: boolean })[]
 }
 
@@ -13,7 +13,7 @@ async function getPage(username: string): Promise<BioPage | null> {
   const sb = await createClient()
   const { data } = await sb
     .from('bio_pages')
-    .select('id, username, display_name, bio, accent_color, background_color, bio_links(id, title, url, sort_order, is_active)')
+    .select('id, username, display_name, bio, accent_color, background_color, avatar_url, bio_links(id, title, url, sort_order, is_active)')
     .eq('username', username)
     .eq('is_published', true)
     .maybeSingle()
@@ -47,6 +47,8 @@ export default async function BioPage({ params }: { params: Promise<{ username: 
     .sort((a, b) => a.sort_order - b.sort_order)
 
   const accent = page.accent_color || '#E8765C'
+  const pageBg = page.background_color || '#1A1612'
+  const avatarEmoji = page.avatar_url && !page.avatar_url.startsWith('http') ? page.avatar_url : null
   const avatarLetter = (page.display_name || page.username)[0]?.toUpperCase() || '?'
 
   // Track view fire-and-forget
@@ -64,10 +66,10 @@ body {
   min-height: 100dvh;
   font-family: 'Space Grotesk', 'Tajawal', sans-serif;
   -webkit-font-smoothing: antialiased;
-  background-color: #1A1612;
+  background-color: ${pageBg};
   background-image:
-    radial-gradient(ellipse 80% 60% at 50% -10%, rgba(232,118,92,0.18) 0%, transparent 55%),
-    radial-gradient(ellipse 60% 40% at 80% 100%, rgba(143,166,142,0.1) 0%, transparent 50%);
+    radial-gradient(ellipse 80% 60% at 50% -10%, ${accent}30 0%, transparent 55%),
+    radial-gradient(ellipse 60% 40% at 80% 100%, ${accent}15 0%, transparent 50%);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -223,8 +225,8 @@ body {
 
         <div className="page">
           <div className="avi-wrap">
-            <div className="avi" role="img" aria-label={`${page.display_name || page.username} avatar`}>
-              {avatarLetter}
+            <div className="avi" role="img" aria-label={`${page.display_name || page.username} avatar`} style={{fontSize: avatarEmoji ? 40 : undefined}}>
+              {avatarEmoji || avatarLetter}
             </div>
           </div>
           <div className="name">{page.display_name || page.username}</div>

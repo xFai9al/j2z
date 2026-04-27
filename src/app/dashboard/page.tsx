@@ -23,9 +23,21 @@ interface QrItem {
   scans: number
   created: string
 }
-interface BioPage { id: string; username: string; display_name: string | null; bio: string | null; is_published: boolean }
+interface BioPage { id: string; username: string; display_name: string | null; bio: string | null; is_published: boolean; accent_color: string; background_color: string; avatar_url: string | null }
 interface BioLink { id: string; title: string; url: string; sort_order: number }
 const DAYS = { en: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'], ar: ['إث','ثلا','أرب','خمي','جمع','سبت','أحد'] }
+
+const BIO_THEMES = [
+  { id: 'coral',  accent: '#E8765C', bg: '#1A1612', en: 'Coral',  ar: 'مرجاني' },
+  { id: 'ocean',  accent: '#4B9EE8', bg: '#0D1A26', en: 'Ocean',  ar: 'بحري'   },
+  { id: 'sage',   accent: '#72A870', bg: '#0E1610', en: 'Sage',   ar: 'أخضر'   },
+  { id: 'purple', accent: '#9B6FE8', bg: '#140F1E', en: 'Purple', ar: 'بنفسجي' },
+  { id: 'gold',   accent: '#E8C66B', bg: '#1A1710', en: 'Gold',   ar: 'ذهبي'   },
+  { id: 'rose',   accent: '#E8608A', bg: '#1E0F14', en: 'Rose',   ar: 'وردي'   },
+  { id: 'mono',   accent: '#AFAFAF', bg: '#111111', en: 'Mono',   ar: 'رمادي'  },
+]
+
+const BIO_AVATARS = ['', '🚀', '⚡', '🎯', '🌟', '🔥', '💎', '🎨', '🌊', '🦋', '🌙', '⭐']
 
 type CountryRow = { code:string; en:string; ar:string; pct:number; flag:string }
 type DeviceRow  = { en:string; ar:string; pct:number; color:string }
@@ -175,6 +187,8 @@ const TXT = {
     bio_add_link:'+ Add Link', bio_link_title:'Link title', bio_link_url:'URL (https://...)',
     bio_no_links:'No links yet. Add one below.',
     bio_view:'View page', bio_error:'',
+    bio_adding:'Adding...',
+    bio_theme:'Page theme', bio_avatar:'Avatar icon', bio_avatar_default:'A',
   },
   ar: {
     overview:'نظرة عامة', links:'الروابط', qr:'أكواد QR', bio:'بايو لينك', analytics:'التحليلات', settings:'الإعدادات', logout:'خروج',
@@ -209,6 +223,8 @@ const TXT = {
     bio_add_link:'+ إضافة رابط', bio_link_title:'عنوان الرابط', bio_link_url:'رابط (https://...)',
     bio_no_links:'لا توجد روابط بعد. أضف رابطاً أدناه.',
     bio_view:'عرض الصفحة', bio_error:'',
+    bio_adding:'جارٍ الإضافة...',
+    bio_theme:'ثيم الصفحة', bio_avatar:'أيقونة الصورة', bio_avatar_default:'أ',
   }
 }
 
@@ -252,6 +268,10 @@ export default function Dashboard() {
   const [newBioTitle, setNewBioTitle] = useState('')
   const [newBioUrl, setNewBioUrl] = useState('')
   const [editBioLinkId, setEditBioLinkId] = useState<string | null>(null)
+  const [bioLinkAdding, setBioLinkAdding] = useState(false)
+  const [bioAccent, setBioAccent] = useState('#E8765C')
+  const [bioBg, setBioBg] = useState('#1A1612')
+  const [bioAvatar, setBioAvatar] = useState<string>('')
   const [editBioLinkTitle, setEditBioLinkTitle] = useState('')
   const [editBioLinkUrl, setEditBioLinkUrl] = useState('')
   const qrRefs = useRef<Record<string, HTMLCanvasElement | null>>({})
@@ -288,9 +308,12 @@ export default function Dashboard() {
     const res = await fetch('/api/bio')
     const data = await res.json()
     if (data.page) {
-      setBioPage({ id: data.page.id, username: data.page.username, display_name: data.page.display_name, bio: data.page.bio, is_published: data.page.is_published })
+      setBioPage({ id: data.page.id, username: data.page.username, display_name: data.page.display_name, bio: data.page.bio, is_published: data.page.is_published, accent_color: data.page.accent_color ?? '#E8765C', background_color: data.page.background_color ?? '#1A1612', avatar_url: data.page.avatar_url ?? null })
       setBioLinks(((data.page.bio_links ?? []) as (BioLink & { is_active: boolean })[]).filter(l => l.is_active).sort((a, b) => a.sort_order - b.sort_order))
       setBioForm({ username: data.page.username, display_name: data.page.display_name ?? '', bio: data.page.bio ?? '' })
+      setBioAccent(data.page.accent_color ?? '#E8765C')
+      setBioBg(data.page.background_color ?? '#1A1612')
+      setBioAvatar(data.page.avatar_url ?? '')
     }
     setBioLoaded(true)
   }, [])
@@ -472,6 +495,12 @@ export default function Dashboard() {
     const title = newBioTitle.trim()
     const url = newBioUrl.trim()
     if (!title || !url) return
+    // Optimistic add
+    const tempId = `temp-${Date.now()}`
+    setBioLinks(p => [...p, { id: tempId, title, url, sort_order: Date.now() }])
+    setNewBioTitle('')
+    setNewBioUrl('')
+    setBioLinkAdding(true)
     const res = await fetch('/api/bio/links', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -479,10 +508,32 @@ export default function Dashboard() {
     })
     if (res.ok) {
       const data = await res.json()
-      setBioLinks(p => [...p, data.link])
-      setNewBioTitle('')
-      setNewBioUrl('')
+      setBioLinks(p => p.map(l => l.id === tempId ? data.link : l))
+    } else {
+      setBioLinks(p => p.filter(l => l.id !== tempId))
     }
+    setBioLinkAdding(false)
+  }
+
+  const saveBioTheme = async (accent: string, bg: string) => {
+    setBioAccent(accent)
+    setBioBg(bg)
+    setBioPage(p => p ? { ...p, accent_color: accent, background_color: bg } : p)
+    fetch('/api/bio', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ accent_color: accent, background_color: bg }),
+    })
+  }
+
+  const saveBioAvatar = async (emoji: string) => {
+    setBioAvatar(emoji)
+    setBioPage(p => p ? { ...p, avatar_url: emoji || null } : p)
+    fetch('/api/bio', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ avatar_url: emoji || null }),
+    })
   }
 
   const deleteBioLink = async (id: string) => {
@@ -669,6 +720,16 @@ body { font-family: 'Space Grotesk', 'Tajawal', sans-serif; -webkit-font-smoothi
 .bio-grid { display: grid; grid-template-columns: 1fr 1.2fr; gap: 20px; align-items: start; }
 @media (max-width: 700px) { .bio-grid { grid-template-columns: 1fr; } }
 .bio-left { display: flex; flex-direction: column; gap: 12px; }
+.theme-row { display: flex; gap: 8px; flex-wrap: wrap; padding: 4px 0; }
+.theme-swatch { width: 36px; height: 36px; border-radius: 50%; cursor: pointer; border: 2.5px solid transparent; transition: transform .15s, border-color .15s; display: flex; align-items: center; justify-content: center; touch-action: manipulation; }
+.theme-swatch:hover { transform: scale(1.12); }
+.theme-swatch.active { border-color: var(--ink); box-shadow: 0 0 0 2px var(--ink); }
+.theme-swatch-inner { width: 18px; height: 18px; border-radius: 50%; }
+.avatar-row { display: flex; gap: 8px; flex-wrap: wrap; padding: 4px 0; }
+.avi-btn { width: 40px; height: 40px; border-radius: 50%; cursor: pointer; border: 2px solid var(--border); background: var(--surface); font-size: 18px; display: flex; align-items: center; justify-content: center; transition: all .15s; touch-action: manipulation; }
+.avi-btn:hover { border-color: var(--ink2); transform: scale(1.1); }
+.avi-btn.active { border-color: #D45A3F; background: var(--coral-soft,#FBEDE8); box-shadow: 0 0 0 2px #D45A3F; }
+.avi-btn-letter { font-family: 'Cal Sans', sans-serif; font-size: 14px; font-weight: 700; color: var(--ink); }
 .bio-url-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; background: #EDF1EC; border: 1px solid #8FA68E; border-radius: 10px; padding: 12px 16px; flex-wrap: wrap; }
 .bio-url-txt { font-family: monospace; font-size: 14px; font-weight: 700; color: #3E5F3C; direction: ltr; }
 .bio-stat-row { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; }
@@ -1085,14 +1146,54 @@ body { font-family: 'Space Grotesk', 'Tajawal', sans-serif; -webkit-font-smoothi
                       </div>
                       <div className="bio-add-row">
                         <input className="t-input" style={{flex:1,minWidth:100}} placeholder={t.bio_link_title} value={newBioTitle} onChange={e=>setNewBioTitle(e.target.value)}/>
-                        <input className="t-input" style={{flex:2,minWidth:120}} placeholder={t.bio_link_url} value={newBioUrl} onChange={e=>setNewBioUrl(e.target.value)} dir="ltr"/>
-                        <button className="tool-btn" style={{padding:'10px 14px',fontSize:13}} onClick={addBioLink} disabled={!newBioTitle.trim()||!newBioUrl.trim()}>{t.bio_add_link}</button>
+                        <input className="t-input" style={{flex:2,minWidth:120}} placeholder={t.bio_link_url} value={newBioUrl} onChange={e=>setNewBioUrl(e.target.value)} dir="ltr" type="url"/>
+                        <button className="tool-btn" style={{padding:'10px 14px',fontSize:13}} onClick={addBioLink} disabled={bioLinkAdding||!newBioTitle.trim()||!newBioUrl.trim()}>{bioLinkAdding ? t.bio_adding : t.bio_add_link}</button>
+                      </div>
+                    </div>
+
+                    {/* Theme picker */}
+                    <div className="card" style={{marginTop:0}}>
+                      <div className="card-hd">{t.bio_theme}</div>
+                      <div className="theme-row">
+                        {BIO_THEMES.map(th => (
+                          <button
+                            key={th.id}
+                            className={`theme-swatch${bioAccent === th.accent && bioBg === th.bg ? ' active' : ''}`}
+                            style={{background: th.bg}}
+                            title={lang === 'ar' ? th.ar : th.en}
+                            aria-label={lang === 'ar' ? th.ar : th.en}
+                            onClick={() => saveBioTheme(th.accent, th.bg)}
+                          >
+                            <div className="theme-swatch-inner" style={{background: th.accent}}/>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Avatar picker */}
+                    <div className="card" style={{marginTop:0}}>
+                      <div className="card-hd">{t.bio_avatar}</div>
+                      <div className="avatar-row">
+                        {BIO_AVATARS.map((emoji, i) => (
+                          <button
+                            key={i}
+                            className={`avi-btn${bioAvatar === emoji ? ' active' : ''}`}
+                            title={emoji || (lang === 'ar' ? t.bio_avatar_default : 'Letter')}
+                            aria-label={emoji || 'Letter initial'}
+                            onClick={() => saveBioAvatar(emoji)}
+                          >
+                            {emoji ? emoji : <span className="avi-btn-letter">{(bioForm.display_name || displayName)[0]?.toUpperCase() || 'A'}</span>}
+                          </button>
+                        ))}
                       </div>
                     </div>
                   </div>
 
-                  <div className="bio-mock">
-                    <div className="bio-avi">{(bioForm.display_name || displayName)[0]?.toUpperCase() || '?'}</div>
+                  <div className="bio-mock" style={{background: `linear-gradient(145deg, ${bioBg} 0%, ${bioBg}cc 100%)`}}>
+                    <div className="bio-mock-glow" style={{position:'absolute',top:-60,left:-60,width:300,height:300,background:`radial-gradient(circle, ${bioAccent}30, transparent 60%)`,pointerEvents:'none'}}/>
+                    <div className="bio-avi" style={{background:`linear-gradient(135deg, ${bioAccent}, #E8C66B)`,fontSize: bioAvatar ? 26 : 22}}>
+                      {bioAvatar || (bioForm.display_name || displayName)[0]?.toUpperCase() || '?'}
+                    </div>
                     <div className="bio-nm">{bioForm.display_name || displayName}</div>
                     <div className="bio-dc">{bioForm.bio || (lang==='en'?'Creator · Designer · Builder':'مبدع · مصمم · مطور')}</div>
                     <div className="bio-links">
@@ -1102,7 +1203,7 @@ body { font-family: 'Space Grotesk', 'Tajawal', sans-serif; -webkit-font-smoothi
                       }
                     </div>
                     <div className="bio-url-tag" style={{marginTop:14,fontFamily:'monospace',fontSize:'10.5px',color:'rgba(255,255,255,.5)'}}>
-                      j2z.com/u/<strong style={{color:'#F4A593',fontWeight:600}}>{bioPage.username}</strong>
+                      j2z.com/u/<strong style={{color: bioAccent,fontWeight:600}}>{bioPage.username}</strong>
                     </div>
                   </div>
                 </div>
