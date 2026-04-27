@@ -28,8 +28,10 @@ j2z/
 │   │   ├── auth/
 │   │   │   ├── page.tsx              ✅ Sign up / Sign in (Google, Apple, Email)
 │   │   │   └── callback/route.ts     ✅ OAuth callback handler
+│   │   ├── admin/
+│   │   │   └── page.tsx              ✅ Admin panel (auth-gated, stats/signups/links/blocklist, bilingual)
 │   │   ├── dashboard/
-│   │   │   └── page.tsx              ✅ Dashboard (6 tabs, auth-gated, mock data)
+│   │   │   └── page.tsx              ✅ Dashboard (6 tabs, auth-gated, real data)
 │   │   ├── terms/
 │   │   │   ├── page.tsx              ✅ Terms of Service page
 │   │   │   └── LegalContent.tsx      ✅ Shared bilingual legal component
@@ -38,8 +40,13 @@ j2z/
 │   │   ├── [slug]/
 │   │   │   └── route.ts              ✅ Redirect handler (uses destination_url)
 │   │   └── api/
-│   │       └── shorten/
-│   │           └── route.ts          ✅ POST /api/shorten (creates short link)
+│   │       ├── shorten/
+│   │       │   └── route.ts          ✅ POST /api/shorten (creates short link)
+│   │       ├── admin/
+│   │       │   ├── stats/
+│   │       │   │   └── route.ts      ✅ GET platform stats (service role key)
+│   │       │   └── blocklist/
+│   │       │       └── route.ts      ✅ GET/POST/DELETE blocklist entries
 │   ├── lib/
 │   │   ├── supabase/
 │   │   │   ├── client.ts             ✅ Browser Supabase client (lazy-safe fallback URL)
@@ -121,13 +128,13 @@ NEXT_PUBLIC_SITE_URL=https://j2z.com
 
 ## Supabase Setup Status
 
-**Current state: CREDENTIALS CONFIGURED — schema not yet applied**
+**Current state: FULLY CONFIGURED AND LIVE**
 
 - Project URL: `https://jzjyzmizjvlgmsaazfcc.supabase.co` ✅
 - Anon key: set in `.env.local` ✅ (also stored as `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`)
 - Tables: ✅ ALL 8 TABLES CREATED (links, profiles, qr_codes, clicks, bio_pages, bio_links, anon_usage, url_blocklist)
 - url_blocklist: ✅ 8 blocked patterns seeded (porn/gambling domains + keywords)
-- Auth providers: ❌ NOT configured
+- Auth providers: ✅ Email + Google OAuth both working
 - Vercel env vars: ✅ SET (NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, NEXT_PUBLIC_SITE_URL, SUPABASE_SERVICE_ROLE_KEY)
 
 ### Supabase setup — FULLY COMPLETE:
@@ -286,6 +293,32 @@ In `.env.local` it is stored under BOTH `NEXT_PUBLIC_SUPABASE_ANON_KEY` and `NEX
 - ✅ Bio tab skeleton: replaced `...` with animated skeleton bars while bio data fetches
 - ✅ Committed and pushed (commit `6452317`)
 
+### Session 10 — Design Polish (Auth + Landing + Dashboard)
+- ✅ **Auth page** (`src/app/auth/page.tsx`): replaced 4 emoji benefit icons (🔗 ⬛ 📊 ✨) with inline SVG components
+  - `BenefitLinkIcon`, `BenefitQrIcon`, `BenefitChartIcon`, `BenefitBioIcon`, `VerifyMailIcon`
+  - Fixed TS "used before declaration" error: moved `benefits` array AFTER all icon declarations
+- ✅ **Landing page** (`src/app/page.tsx`): added two new sections
+  - Hero demo card: shows `https://www.youtube.com/watch?v=...&utm_source=social&ref=home` → `j2z.com/yt-vid`
+  - Stats strip below hero: `10K+ Links · 190+ Countries · 100% Free`
+- ✅ **Dashboard** (`src/app/dashboard/page.tsx`): visual polish
+  - Bar chart height: 80px → 110px; all bars same coral color with opacity gradient (oldest=25%, newest=100%)
+  - Stat cards: added `::before` pseudo-element top-border accent (coral/sage/butter/warm gradient per card)
+  - Removed 👋 emoji from greeting
+- ✅ **DNS**: j2z.com → Vercel (A record: 76.76.21.21, CNAME www → cname.vercel-dns.com) — user applied at name.com
+- ✅ Committed and pushed (commit `c2b9df0`)
+
+### Session 11 — Admin Dashboard
+- ✅ Built `src/app/admin/page.tsx` — client component, auth-guarded (email check), bilingual EN/AR
+  - Loading skeleton (pulsing logo while auth + data fetches)
+  - Forbidden state (shield icon + redirect link)
+  - Stats section: 4 cards with color accents (users/links/QR/clicks)
+  - Recent signups table: last 15, shows name + email + join date
+  - Top links table: top 10 by clicks, shows slug + destination + click count
+  - URL blocklist: add form (pattern + type + reason) + delete per entry, optimistic UI
+- ✅ Built `src/app/api/admin/stats/route.ts` — GET, verifies admin email, service role key, parallel fetch
+- ✅ Built `src/app/api/admin/blocklist/route.ts` — GET/POST/DELETE, verifies admin email, service role key
+- ✅ Committed and pushed (commits `907c9d1`, `3accf5c`)
+
 ---
 
 ## What's Next (Pending Work)
@@ -319,6 +352,18 @@ In `.env.local` it is stored under BOTH `NEXT_PUBLIC_SUPABASE_ANON_KEY` and `NEX
 - Mobile testing — manual (user must test on device)
 
 ### Priority 8 ✅ DONE — schema-additions.sql applied, click tracking working
+
+### Priority 9 ✅ DONE — Admin Dashboard
+
+**Route:** `src/app/admin/page.tsx`
+- Client auth guard: checks email === `faisal@aba-alkhail.com`, shows forbidden state if not admin
+- Stats: total users, active links, active QR codes, total clicks (service role key bypasses RLS)
+- Recent signups: last 15 profiles ordered by `created_at`
+- Top links: top 10 by clicks
+- URL blocklist: view all, add (POST), delete (DELETE with `?id=`) — optimistic UI
+- Bilingual EN/AR, inline CSS, same brand tokens
+- API routes: `/api/admin/stats` (GET), `/api/admin/blocklist` (GET/POST/DELETE)
+- `admin` in RESERVED set in middleware ✅ (was already there)
 
 ---
 
