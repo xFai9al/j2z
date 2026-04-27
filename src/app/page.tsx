@@ -2,6 +2,140 @@
 import { useState, useRef, useEffect } from 'react'
 import QRCode from 'qrcode'
 
+// ── Static components moved outside to avoid recreation on every render ───────
+
+const Logo = ({ s = 44, w = false }: { s?: number; w?: boolean }) => {
+  const fr = w ? 'rgba(255,255,255,0.15)' : '#FBEDE8'
+  const d  = w ? '#FFFFFF' : '#D45A3F'
+  const m  = w ? 'rgba(255,255,255,0.7)' : '#E8765C'
+  const l  = w ? 'rgba(255,255,255,0.4)' : '#F4A593'
+  return (
+    <svg viewBox="0 0 60 60" width={s} height={s} fill="none">
+      <rect x="0" y="0" width="60" height="60" rx="16" fill={fr}/>
+      <rect x="28" y="16" width="5" height="20" fill={l}/>
+      <rect x="33" y="13" width="5" height="23" fill={m}/>
+      <rect x="38" y="10" width="5" height="26" fill={d}/>
+      <path d="M43 10 L50 10 L43 18 Z" fill={l}/>
+      <path d="M12 36 L43 36 L43 48 L20 48 Q12 48 12 42 Z" fill={d}/>
+    </svg>
+  )
+}
+
+const QRIcon = ({ s = 28, color = '#D45A3F' }: { s?: number; color?: string }) => (
+  <svg viewBox="0 0 32 32" width={s} height={s} fill="none">
+    <rect x="2" y="2" width="10" height="10" rx="2" stroke={color} strokeWidth="2"/>
+    <rect x="5" y="5" width="4" height="4" fill={color}/>
+    <rect x="20" y="2" width="10" height="10" rx="2" stroke={color} strokeWidth="2"/>
+    <rect x="23" y="5" width="4" height="4" fill={color}/>
+    <rect x="2" y="20" width="10" height="10" rx="2" stroke={color} strokeWidth="2"/>
+    <rect x="5" y="23" width="4" height="4" fill={color}/>
+    <rect x="14" y="4" width="2" height="2" fill={color}/>
+    <rect x="17" y="7" width="2" height="2" fill={color}/>
+    <rect x="14" y="10" width="2" height="2" fill={color}/>
+    <rect x="14" y="14" width="2" height="2" fill={color}/>
+    <rect x="20" y="14" width="2" height="2" fill={color}/>
+    <rect x="26" y="14" width="2" height="2" fill={color}/>
+    <rect x="14" y="17" width="2" height="2" fill={color}/>
+    <rect x="20" y="17" width="2" height="2" fill={color}/>
+    <rect x="26" y="17" width="2" height="2" fill={color}/>
+    <rect x="17" y="20" width="2" height="2" fill={color}/>
+    <rect x="23" y="20" width="2" height="2" fill={color}/>
+    <rect x="14" y="23" width="2" height="2" fill={color}/>
+    <rect x="20" y="23" width="2" height="2" fill={color}/>
+    <rect x="26" y="23" width="2" height="2" fill={color}/>
+  </svg>
+)
+
+const IcoDownload = ({ s = 14, c = 'currentColor' }: { s?: number; c?: string }) => (
+  <svg viewBox="0 0 20 20" width={s} height={s} fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M10 3v10M6 9l4 4 4-4"/><path d="M3 17h14"/>
+  </svg>
+)
+
+const BioAvatarIcon = () => (
+  <svg viewBox="0 0 24 24" width={28} height={28} fill="none" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="8" r="3.5"/>
+    <path d="M4 20c0-3.866 3.582-7 8-7s8 3.134 8 7"/>
+  </svg>
+)
+
+// ── Static translation data outside component ─────────────────────────────────
+
+const T = {
+  en: {
+    nav_signin: 'Sign in', nav_signup: 'Get started',
+    hero_badge: '✦ Print once. Update forever.',
+    hero_title_1: 'Smart links,', hero_title_em: 'free forever.',
+    hero_sub: "The shortest domain you'll ever love. Unlimited short links with full analytics — completely free.",
+    tool_placeholder: 'Paste your long URL here...', tool_btn: 'Shorten',
+    tool_shortened: 'Your short link', tool_copy: 'Copy', tool_copied: '✓ Copied!',
+    trust_1: 'No credit card', trust_2: 'No hidden limits', trust_3: 'No ads',
+    consent_use_1: 'By using this, you agree to our', consent_terms: 'Terms',
+    consent_and: 'and', consent_privacy: 'Privacy Policy', consent_signup_1: 'By signing up, you agree to our',
+    qr_tag: 'QR CODES', qr_title: 'Need a QR code?',
+    qr_sub: 'Convert any URL into a QR code instantly.',
+    qr_placeholder: 'Paste any URL to convert...', qr_btn: 'Generate QR', qr_download: 'Download PNG',
+    qr_tip: 'All QR codes route through j2z — edit destination anytime without reprinting.',
+    bio_tag: 'BIO LINK', bio_title: 'Your links, one page.',
+    bio_sub: 'A beautiful bio page at j2z.com/yourname. Showcase all your socials, products, or projects.',
+    bio_cta: 'Sign up free to create yours',
+    bio_preview_name: 'your name', bio_preview_desc: 'creator · designer · builder',
+    bio_preview_link1: 'My Latest Project', bio_preview_link2: 'YouTube Channel',
+    bio_preview_link3: 'Instagram', bio_preview_link4: 'Contact Me',
+    hero_feat_tag: "THE ONE FEATURE YOU'LL REMEMBER",
+    hero_feat_title_1: 'Print once.', hero_feat_title_2: 'Update forever.',
+    hero_feat_sub: "Printed business cards with a QR code? Phone number changed? With J2z, you don't reprint. Just edit the destination. The code stays the same.",
+    feat_1_title: 'The old way', feat_1_desc: 'QR is locked to one URL. Change it = reprint everything.',
+    feat_2_title: 'The J2z way', feat_2_desc: 'QR stays, destination is yours to edit. Forever.',
+    cta_title: 'Ready in 10 seconds.',
+    cta_sub: 'Create your first short link right now. Sign up later if you love it.',
+    cta_btn: 'Get started — free forever',
+    footer_terms: 'Terms', footer_privacy: 'Privacy', footer_contact: 'Contact',
+    footer_tagline: 'Smart links, free forever.', footer_rights: '© 2026 J2z. Made with care.',
+    prompt_title: 'Love it? Keep going →',
+    prompt_sub: 'Sign up free to create unlimited links & QR codes, track every click, and edit destinations anytime.',
+    prompt_btn_google: 'Continue with Google',
+    prompt_btn_email: 'Continue with email', prompt_close: 'Maybe later',
+  },
+  ar: {
+    nav_signin: 'دخول', nav_signup: 'ابدأ الآن',
+    hero_badge: '✦ اطبعها مرة. عدّلها للأبد.',
+    hero_title_1: 'روابط ذكية،', hero_title_em: 'مجانية للأبد.',
+    hero_sub: 'أقصر دومين ستحبه. روابط مختصرة بلا حدود مع تحليلات كاملة — مجاناً تماماً.',
+    tool_placeholder: 'الصق رابطك الطويل هنا...', tool_btn: 'اختصر',
+    tool_shortened: 'رابطك المختصر', tool_copy: 'نسخ', tool_copied: '✓ تم النسخ!',
+    trust_1: 'بدون بطاقة ائتمان', trust_2: 'بدون حدود خفية', trust_3: 'بدون إعلانات',
+    consent_use_1: 'باستخدامك للخدمة، فإنك توافق على', consent_terms: 'الشروط',
+    consent_and: 'و', consent_privacy: 'سياسة الخصوصية', consent_signup_1: 'بالتسجيل، فإنك توافق على',
+    qr_tag: 'أكواد QR', qr_title: 'تحتاج QR؟',
+    qr_sub: 'حوّل أي رابط إلى كود QR فوراً.',
+    qr_placeholder: 'الصق رابطاً لتحويله...', qr_btn: 'توليد QR', qr_download: 'تحميل PNG',
+    qr_tip: 'كل أكواد QR تمر عبر j2z — عدّل الوجهة في أي وقت بدون إعادة طباعة.',
+    bio_tag: 'بالنك بيو', bio_title: 'روابطك في صفحة واحدة.',
+    bio_sub: 'صفحة بالنك جميلة على j2z.com/اسمك. اعرض حساباتك ومنتجاتك ومشاريعك.',
+    bio_cta: 'سجّل مجاناً لإنشاء صفحتك',
+    bio_preview_name: 'اسمك', bio_preview_desc: 'مبدع · مصمم · مطور',
+    bio_preview_link1: 'أحدث مشروع لي', bio_preview_link2: 'قناة اليوتيوب',
+    bio_preview_link3: 'إنستغرام', bio_preview_link4: 'تواصل معي',
+    hero_feat_tag: 'الميزة التي ستتذكرها',
+    hero_feat_title_1: 'اطبعها مرة.', hero_feat_title_2: 'عدّلها للأبد.',
+    hero_feat_sub: 'طبعت كروت أعمال مع QR؟ تغيّر رقم جوالك؟ مع J2z، لا تطبع مرة ثانية. فقط عدّل الوجهة. الكود يبقى كما هو.',
+    feat_1_title: 'الطريقة القديمة', feat_1_desc: 'QR مرتبط برابط واحد. تغييره = إعادة طباعة كل شيء.',
+    feat_2_title: 'طريقة J2z', feat_2_desc: 'الكود يبقى، الوجهة تعدّلها متى شئت. للأبد.',
+    cta_title: 'جاهز في ١٠ ثوانٍ.',
+    cta_sub: 'أنشئ أول رابط مختصر الآن. سجّل لاحقاً إذا أعجبك.',
+    cta_btn: 'ابدأ — مجاني للأبد',
+    footer_terms: 'الشروط', footer_privacy: 'الخصوصية', footer_contact: 'تواصل',
+    footer_tagline: 'روابط ذكية، مجانية للأبد.', footer_rights: '© ٢٠٢٦ J2z. صنّع بعناية.',
+    prompt_title: 'أعجبك؟ واصل →',
+    prompt_sub: 'سجّل مجاناً لإنشاء روابط وأكواد QR بلا حدود، تتبع كل نقرة، وعدّل الوجهات في أي وقت.',
+    prompt_btn_google: 'متابعة عبر Google',
+    prompt_btn_email: 'متابعة عبر الإيميل', prompt_close: 'لاحقاً',
+  },
+}
+
+// ── Component ─────────────────────────────────────────────────────────────────
+
 export default function J2zLanding() {
   const [lang, setLang] = useState<'en' | 'ar'>('en')
   const [url, setUrl] = useState('')
@@ -17,48 +151,7 @@ export default function J2zLanding() {
   const [showSignupPrompt, setShowSignupPrompt] = useState(false)
   const qrCanvasRef = useRef<HTMLCanvasElement>(null)
   const dir = lang === 'ar' ? 'rtl' : 'ltr'
-
-  const Logo = ({ s = 44, w = false }: { s?: number; w?: boolean }) => {
-    const fr = w ? 'rgba(255,255,255,0.15)' : '#FBEDE8'
-    const d = w ? '#FFFFFF' : '#D45A3F'
-    const m = w ? 'rgba(255,255,255,0.7)' : '#E8765C'
-    const l = w ? 'rgba(255,255,255,0.4)' : '#F4A593'
-    return (
-      <svg viewBox="0 0 60 60" width={s} height={s} fill="none">
-        <rect x="0" y="0" width="60" height="60" rx="16" fill={fr}/>
-        <rect x="28" y="16" width="5" height="20" fill={l}/>
-        <rect x="33" y="13" width="5" height="23" fill={m}/>
-        <rect x="38" y="10" width="5" height="26" fill={d}/>
-        <path d="M43 10 L50 10 L43 18 Z" fill={l}/>
-        <path d="M12 36 L43 36 L43 48 L20 48 Q12 48 12 42 Z" fill={d}/>
-      </svg>
-    )
-  }
-
-  const QRIcon = ({ s = 28, color = '#D45A3F' }: { s?: number; color?: string }) => (
-    <svg viewBox="0 0 32 32" width={s} height={s} fill="none">
-      <rect x="2" y="2" width="10" height="10" rx="2" stroke={color} strokeWidth="2"/>
-      <rect x="5" y="5" width="4" height="4" fill={color}/>
-      <rect x="20" y="2" width="10" height="10" rx="2" stroke={color} strokeWidth="2"/>
-      <rect x="23" y="5" width="4" height="4" fill={color}/>
-      <rect x="2" y="20" width="10" height="10" rx="2" stroke={color} strokeWidth="2"/>
-      <rect x="5" y="23" width="4" height="4" fill={color}/>
-      <rect x="14" y="4" width="2" height="2" fill={color}/>
-      <rect x="17" y="7" width="2" height="2" fill={color}/>
-      <rect x="14" y="10" width="2" height="2" fill={color}/>
-      <rect x="14" y="14" width="2" height="2" fill={color}/>
-      <rect x="20" y="14" width="2" height="2" fill={color}/>
-      <rect x="26" y="14" width="2" height="2" fill={color}/>
-      <rect x="14" y="17" width="2" height="2" fill={color}/>
-      <rect x="20" y="17" width="2" height="2" fill={color}/>
-      <rect x="26" y="17" width="2" height="2" fill={color}/>
-      <rect x="17" y="20" width="2" height="2" fill={color}/>
-      <rect x="23" y="20" width="2" height="2" fill={color}/>
-      <rect x="14" y="23" width="2" height="2" fill={color}/>
-      <rect x="20" y="23" width="2" height="2" fill={color}/>
-      <rect x="26" y="23" width="2" height="2" fill={color}/>
-    </svg>
-  )
+  const t = T[lang]
 
   useEffect(() => {
     if (qrResult && qrCanvasRef.current) {
@@ -69,82 +162,6 @@ export default function J2zLanding() {
       })
     }
   }, [qrResult])
-
-  const T = {
-    en: {
-      nav_signin: 'Sign in', nav_signup: 'Get started',
-      hero_badge: '✦ Print once. Update forever.',
-      hero_title_1: 'Smart links,', hero_title_em: 'free forever.',
-      hero_sub: "The shortest domain you'll ever love. Unlimited short links with full analytics — completely free.",
-      tool_placeholder: 'Paste your long URL here...', tool_btn: 'Shorten',
-      tool_shortened: 'Your short link', tool_copy: 'Copy', tool_copied: '✓ Copied!',
-      trust_1: 'No credit card', trust_2: 'No hidden limits', trust_3: 'No ads',
-      consent_use_1: 'By using this, you agree to our', consent_terms: 'Terms',
-      consent_and: 'and', consent_privacy: 'Privacy Policy', consent_signup_1: 'By signing up, you agree to our',
-      qr_tag: 'QR CODES', qr_title: 'Need a QR code?',
-      qr_sub: 'Convert any URL into a QR code instantly.',
-      qr_placeholder: 'Paste any URL to convert...', qr_btn: 'Generate QR', qr_download: 'Download PNG',
-      qr_tip: 'All QR codes route through j2z — edit destination anytime without reprinting.',
-      bio_tag: 'BIO LINK', bio_title: 'Your links, one page.',
-      bio_sub: 'A beautiful bio page at j2z.com/yourname. Showcase all your socials, products, or projects.',
-      bio_cta: 'Sign up free to create yours',
-      bio_preview_name: 'your name', bio_preview_desc: 'creator · designer · builder',
-      bio_preview_link1: 'My Latest Project', bio_preview_link2: 'YouTube Channel',
-      bio_preview_link3: 'Instagram', bio_preview_link4: 'Contact Me',
-      hero_feat_tag: "THE ONE FEATURE YOU'LL REMEMBER",
-      hero_feat_title_1: 'Print once.', hero_feat_title_2: 'Update forever.',
-      hero_feat_sub: "Printed business cards with a QR code? Phone number changed? With J2z, you don't reprint. Just edit the destination. The code stays the same.",
-      feat_1_title: 'The old way', feat_1_desc: 'QR is locked to one URL. Change it = reprint everything.',
-      feat_2_title: 'The J2z way', feat_2_desc: 'QR stays, destination is yours to edit. Forever.',
-      cta_title: 'Ready in 10 seconds.',
-      cta_sub: 'Create your first short link right now. Sign up later if you love it.',
-      cta_btn: 'Get started — free forever',
-      footer_about: 'About', footer_blog: 'Blog', footer_terms: 'Terms',
-      footer_privacy: 'Privacy', footer_contact: 'Contact',
-      footer_tagline: 'Smart links, free forever.', footer_rights: '© 2026 J2z. Made with care.',
-      prompt_title: 'Love it? Keep going →',
-      prompt_sub: 'Sign up free to create unlimited links & QR codes, track every click, and edit destinations anytime.',
-      prompt_btn_google: 'Continue with Google', prompt_btn_apple: 'Continue with Apple',
-      prompt_btn_email: 'Continue with email', prompt_close: 'Maybe later',
-    },
-    ar: {
-      nav_signin: 'دخول', nav_signup: 'ابدأ الآن',
-      hero_badge: '✦ اطبعها مرة. عدّلها للأبد.',
-      hero_title_1: 'روابط ذكية،', hero_title_em: 'مجانية للأبد.',
-      hero_sub: 'أقصر دومين ستحبه. روابط مختصرة بلا حدود مع تحليلات كاملة — مجاناً تماماً.',
-      tool_placeholder: 'الصق رابطك الطويل هنا...', tool_btn: 'اختصر',
-      tool_shortened: 'رابطك المختصر', tool_copy: 'نسخ', tool_copied: '✓ تم النسخ!',
-      trust_1: 'بدون بطاقة ائتمان', trust_2: 'بدون حدود خفية', trust_3: 'بدون إعلانات',
-      consent_use_1: 'باستخدامك للخدمة، فإنك توافق على', consent_terms: 'الشروط',
-      consent_and: 'و', consent_privacy: 'سياسة الخصوصية', consent_signup_1: 'بالتسجيل، فإنك توافق على',
-      qr_tag: 'أكواد QR', qr_title: 'تحتاج QR؟',
-      qr_sub: 'حوّل أي رابط إلى كود QR فوراً.',
-      qr_placeholder: 'الصق رابطاً لتحويله...', qr_btn: 'توليد QR', qr_download: 'تحميل PNG',
-      qr_tip: 'كل أكواد QR تمر عبر j2z — عدّل الوجهة في أي وقت بدون إعادة طباعة.',
-      bio_tag: 'بالنك بيو', bio_title: 'روابطك في صفحة واحدة.',
-      bio_sub: 'صفحة بالنك جميلة على j2z.com/اسمك. اعرض حساباتك ومنتجاتك ومشاريعك.',
-      bio_cta: 'سجّل مجاناً لإنشاء صفحتك',
-      bio_preview_name: 'اسمك', bio_preview_desc: 'مبدع · مصمم · مطور',
-      bio_preview_link1: 'أحدث مشروع لي', bio_preview_link2: 'قناة اليوتيوب',
-      bio_preview_link3: 'إنستغرام', bio_preview_link4: 'تواصل معي',
-      hero_feat_tag: 'الميزة التي ستتذكرها',
-      hero_feat_title_1: 'اطبعها مرة.', hero_feat_title_2: 'عدّلها للأبد.',
-      hero_feat_sub: 'طبعت كروت أعمال مع QR؟ تغيّر رقم جوالك؟ مع J2z، لا تطبع مرة ثانية. فقط عدّل الوجهة. الكود يبقى كما هو.',
-      feat_1_title: 'الطريقة القديمة', feat_1_desc: 'QR مرتبط برابط واحد. تغييره = إعادة طباعة كل شيء.',
-      feat_2_title: 'طريقة J2z', feat_2_desc: 'الكود يبقى، الوجهة تعدّلها متى شئت. للأبد.',
-      cta_title: 'جاهز في ١٠ ثوانٍ.',
-      cta_sub: 'أنشئ أول رابط مختصر الآن. سجّل لاحقاً إذا أعجبك.',
-      cta_btn: 'ابدأ — مجاني للأبد',
-      footer_about: 'عنّا', footer_blog: 'المدونة', footer_terms: 'الشروط',
-      footer_privacy: 'الخصوصية', footer_contact: 'تواصل',
-      footer_tagline: 'روابط ذكية، مجانية للأبد.', footer_rights: '© ٢٠٢٦ J2z. صنّع بعناية.',
-      prompt_title: 'أعجبك؟ واصل →',
-      prompt_sub: 'سجّل مجاناً لإنشاء روابط وأكواد QR بلا حدود، تتبع كل نقرة، وعدّل الوجهات في أي وقت.',
-      prompt_btn_google: 'متابعة عبر Google', prompt_btn_apple: 'متابعة عبر Apple',
-      prompt_btn_email: 'متابعة عبر الإيميل', prompt_close: 'لاحقاً',
-    },
-  }
-  const t = T[lang]
 
   const shorten = async () => {
     const u = url.trim()
@@ -218,16 +235,16 @@ export default function J2zLanding() {
 }
 *{box-sizing:border-box;margin:0;padding:0;}html{scroll-behavior:smooth;}
 body{background:var(--paper);color:var(--ink);font-family:'Space Grotesk','Tajawal',sans-serif;-webkit-font-smoothing:antialiased;line-height:1.5;}
-.nav{position:sticky;top:0;z-index:100;background:rgba(251,250,247,.9);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);}
-.nav-inner{max-width:1100px;margin:0 auto;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;gap:16px;}
+.nav{position:sticky;top:0;z-index:100;background:rgba(251,250,247,.9);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--border);}
+.nav-inner{max-width:1100px;margin:0 auto;padding:10px 20px;display:flex;align-items:center;justify-content:space-between;gap:16px;}
 .nav-logo{display:flex;align-items:center;gap:8px;text-decoration:none;color:inherit;}
 .nav-logo-name{font-size:22px;font-weight:700;letter-spacing:-.04em;}
 .nav-actions{display:flex;gap:8px;align-items:center;}
-.lang-btn{background:var(--cream);border:1px solid var(--border);padding:7px 12px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;color:var(--ink);font-family:inherit;}
+.lang-btn{background:var(--cream);border:1px solid var(--border);padding:0 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;color:var(--ink);font-family:inherit;min-height:44px;display:inline-flex;align-items:center;}
 .lang-btn:hover{background:var(--warm);}
-.btn-signin{padding:8px 14px;background:transparent;color:var(--ink);border:none;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;}
+.btn-signin{padding:0 14px;background:transparent;color:var(--ink);border:none;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;min-height:44px;display:inline-flex;align-items:center;}
 .btn-signin:hover{color:var(--coral-deep);}
-.btn-signup{padding:9px 18px;background:var(--ink);color:white;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s;}
+.btn-signup{padding:0 18px;background:var(--ink);color:white;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s;min-height:44px;display:inline-flex;align-items:center;}
 .btn-signup:hover{background:var(--coral-deep);transform:translateY(-1px);}
 .hero{padding:48px 20px 32px;text-align:center;position:relative;overflow:hidden;}
 .hero::before{content:'';position:absolute;top:-100px;left:50%;transform:translateX(-50%);width:800px;height:500px;background:radial-gradient(ellipse,rgba(232,118,92,.08) 0%,transparent 60%);pointer-events:none;z-index:0;}
@@ -253,8 +270,9 @@ body{background:var(--paper);color:var(--ink);font-family:'Space Grotesk','Tajaw
 .tool-result{margin-top:12px;padding:16px 18px;background:linear-gradient(135deg,var(--sage-soft),var(--coral-soft));border:1px solid var(--sage);border-radius:12px;animation:slideIn .3s ease;}
 @keyframes slideIn{from{opacity:0;transform:translateY(-6px);}to{opacity:1;transform:translateY(0);}}
 .tool-result-label{font-size:10.5px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:1.2px;font-weight:700;margin-bottom:6px;}
-.tool-result-row{display:flex;align-items:center;gap:12px;justify-content:space-between;}
-.tool-result-url{font-family:monospace;font-size:17px;font-weight:700;color:var(--coral-deep);}
+.tool-result-row{display:flex;align-items:center;gap:12px;justify-content:space-between;flex-wrap:wrap;}
+.tool-result-url{font-family:monospace;font-size:17px;font-weight:700;color:var(--coral-deep);text-decoration:none;}
+.tool-result-url:hover{text-decoration:underline;}
 .tool-copy-btn{padding:7px 14px;background:var(--ink);color:white;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;}
 .tool-copy-btn.copied{background:var(--sage);}
 .tool-error{margin-top:8px;padding:8px 12px;background:#FDEAEA;border:1px solid #F4A593;border-radius:8px;font-size:13px;color:#C03030;}
@@ -279,7 +297,8 @@ body{background:var(--paper);color:var(--ink);font-family:'Space Grotesk','Tajaw
 .qr-info{flex:1;min-width:180px;}
 .qr-info-label{font-size:10.5px;color:var(--coral-deep);text-transform:uppercase;letter-spacing:1.2px;font-weight:700;margin-bottom:5px;}
 .qr-info-url{font-family:monospace;font-size:15px;font-weight:700;color:var(--coral-deep);margin-bottom:12px;}
-.qr-dl-btn{padding:8px 16px;background:var(--ink);color:white;border:none;border-radius:8px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit;}
+.qr-dl-btn{padding:9px 16px;background:var(--ink);color:white;border:none;border-radius:8px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:7px;min-height:40px;}
+.qr-dl-btn:hover{background:var(--coral-deep);}
 .qr-tip{margin-top:12px;padding:10px 14px;background:var(--sage-soft);border-radius:10px;font-size:12.5px;color:#3E5F3C;line-height:1.5;}
 .bio-wrap{display:grid;grid-template-columns:1fr 1fr;gap:32px;align-items:center;max-width:900px;margin:0 auto;}
 @media(max-width:720px){.bio-wrap{grid-template-columns:1fr;gap:24px;}}
@@ -289,7 +308,7 @@ body{background:var(--paper);color:var(--ink);font-family:'Space Grotesk','Tajaw
 .bio-cta-btn:hover{background:var(--coral-deep);transform:translateY(-1px);}
 .bio-preview{background:linear-gradient(145deg,var(--ink) 0%,#1E1A14 100%);border-radius:20px;padding:26px 22px;color:white;text-align:center;box-shadow:var(--shadow-lg);position:relative;overflow:hidden;}
 .bio-preview::before{content:'';position:absolute;top:-30%;left:-20%;width:400px;height:400px;background:radial-gradient(circle,rgba(232,118,92,.2),transparent 60%);pointer-events:none;}
-.bio-avi{width:58px;height:58px;border-radius:50%;background:linear-gradient(135deg,var(--coral) 0%,var(--butter) 100%);margin:0 auto 10px;display:flex;align-items:center;justify-content:center;font-size:24px;position:relative;z-index:1;}
+.bio-avi{width:58px;height:58px;border-radius:50%;background:linear-gradient(135deg,var(--coral) 0%,var(--butter) 100%);margin:0 auto 10px;display:flex;align-items:center;justify-content:center;position:relative;z-index:1;}
 .bio-name{font-family:'Cal Sans',sans-serif;font-size:16px;font-weight:700;margin-bottom:3px;position:relative;z-index:1;}
 .bio-desc{font-size:11.5px;color:rgba(255,255,255,.6);margin-bottom:14px;position:relative;z-index:1;}
 .bio-links{display:flex;flex-direction:column;gap:7px;max-width:240px;margin:0 auto;position:relative;z-index:1;}
@@ -329,8 +348,8 @@ body{background:var(--paper);color:var(--ink);font-family:'Space Grotesk','Tajaw
 .footer-logo-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
 .footer-logo-name{font-size:20px;font-weight:700;color:white;letter-spacing:-.04em;}
 .footer-tagline{font-size:13px;color:rgba(255,255,255,.6);}
-.footer-links{display:flex;gap:24px;flex-wrap:wrap;}
-.footer-link{font-size:13px;color:rgba(255,255,255,.7);text-decoration:none;font-weight:500;cursor:pointer;}
+.footer-links{display:flex;gap:24px;flex-wrap:wrap;align-items:center;}
+.footer-link{font-size:13px;color:rgba(255,255,255,.7);text-decoration:none;font-weight:500;}
 .footer-link:hover{color:var(--coral-light);}
 .footer-bottom{text-align:center;font-size:11.5px;color:rgba(255,255,255,.4);}
 .prompt-overlay{position:fixed;inset:0;background:rgba(47,42,36,.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;animation:fadeIn .2s ease;}
@@ -341,13 +360,13 @@ body{background:var(--paper);color:var(--ink);font-family:'Space Grotesk','Tajaw
 .prompt-title{font-family:'Cal Sans',sans-serif;font-size:22px;font-weight:700;letter-spacing:-.02em;margin-bottom:8px;}
 .prompt-sub{font-size:14px;color:var(--ink-soft);line-height:1.55;margin-bottom:22px;}
 .prompt-btns{display:flex;flex-direction:column;gap:8px;}
-.prompt-btn{padding:11px 18px;border-radius:10px;border:1.5px solid var(--border);background:white;color:var(--ink);font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .15s;}
+.prompt-btn{padding:11px 18px;border-radius:10px;border:1.5px solid var(--border);background:white;color:var(--ink);font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .15s;min-height:48px;}
 .prompt-btn:hover{border-color:var(--coral);background:var(--coral-soft);}
 .prompt-btn.primary{background:var(--ink);color:white;border-color:var(--ink);}
 .prompt-btn.primary:hover{background:var(--coral-deep);border-color:var(--coral-deep);}
 .prompt-consent{margin-top:14px;font-size:11px;color:var(--ink-mute);line-height:1.5;}
 .prompt-consent a{color:var(--coral-deep);text-decoration:underline;font-weight:600;cursor:pointer;}
-.prompt-close{margin-top:10px;background:none;border:none;color:var(--ink-mute);font-size:13px;cursor:pointer;font-family:inherit;text-decoration:underline;}
+.prompt-close{margin-top:10px;background:none;border:none;color:var(--ink-mute);font-size:13px;cursor:pointer;font-family:inherit;text-decoration:underline;min-height:44px;padding:0 8px;}
 .prompt-close:hover{color:var(--ink);}
 button,a{touch-action:manipulation;}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:0.01ms!important;transition-duration:0.01ms!important;}}
@@ -378,7 +397,7 @@ button,a{touch-action:manipulation;}
               <span className="nav-logo-name">J2z</span>
             </a>
             <div className="nav-actions">
-              <button className="lang-btn" onClick={() => setLang(lang === 'en' ? 'ar' : 'en')}>
+              <button className="lang-btn" onClick={() => setLang(lang === 'en' ? 'ar' : 'en')} aria-label="Switch language">
                 {lang === 'en' ? 'العربية' : 'English'}
               </button>
               <button className="btn-signin" onClick={() => window.location.href = '/auth'}>{t.nav_signin}</button>
@@ -395,24 +414,43 @@ button,a{touch-action:manipulation;}
 
             <div className="tool-box">
               <div className="tool-row">
-                <input className="tool-input" type="text" placeholder={t.tool_placeholder}
-                  value={url} onChange={e => setUrl(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && shorten()} dir="ltr"/>
+                <input
+                  className="tool-input"
+                  type="url"
+                  placeholder={t.tool_placeholder}
+                  value={url}
+                  onChange={e => setUrl(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && shorten()}
+                  dir="ltr"
+                  aria-label={t.tool_placeholder}
+                />
                 <div className="tool-custom">
                   <span className="tool-custom-prefix">j2z.com/</span>
-                  <input className="tool-custom-input" type="text" placeholder="custom"
-                    value={custom} onChange={e => setCustom(e.target.value.replace(/\s/g, ''))} dir="ltr"/>
+                  <input
+                    className="tool-custom-input"
+                    type="text"
+                    placeholder="custom"
+                    value={custom}
+                    onChange={e => setCustom(e.target.value.replace(/\s/g, ''))}
+                    dir="ltr"
+                    aria-label="Custom path"
+                  />
                 </div>
                 <button className="tool-btn" onClick={shorten} disabled={shortenLoading}>
                   {shortenLoading ? '...' : `${t.tool_btn} →`}
                 </button>
               </div>
-              {shortenError && <div className="tool-error">{shortenError}</div>}
+              {shortenError && <div className="tool-error" role="alert">{shortenError}</div>}
               {result && (
                 <div className="tool-result">
                   <div className="tool-result-label">{t.tool_shortened}</div>
                   <div className="tool-result-row">
-                    <span className="tool-result-url">{result}</span>
+                    <a
+                      className="tool-result-url"
+                      href={result}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >{result}</a>
                     <button className={`tool-copy-btn ${copied ? 'copied' : ''}`} onClick={copyResult}>
                       {copied ? t.tool_copied : t.tool_copy}
                     </button>
@@ -424,12 +462,12 @@ button,a{touch-action:manipulation;}
               {t.consent_use_1} <a href="/terms">{t.consent_terms}</a> {t.consent_and} <a href="/privacy">{t.consent_privacy}</a>.
             </div>
             <div className="hero-trust">
-              <span className="trust-item"><span className="check">✓</span> {t.trust_1}</span>
-              <span className="trust-item"><span className="check">✓</span> {t.trust_2}</span>
-              <span className="trust-item"><span className="check">✓</span> {t.trust_3}</span>
+              <span className="trust-item"><span className="check" aria-hidden="true">✓</span> {t.trust_1}</span>
+              <span className="trust-item"><span className="check" aria-hidden="true">✓</span> {t.trust_2}</span>
+              <span className="trust-item"><span className="check" aria-hidden="true">✓</span> {t.trust_3}</span>
             </div>
             <div className="hero-demo-wrap">
-              <div className="hero-demo">
+              <div className="hero-demo" aria-hidden="true">
                 <span className="demo-before">https://www.youtube.com/watch?v=dQw4w9WgXcQ&utm_source=social&ref=home</span>
                 <div className="demo-arrow-box">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--coral-deep)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
@@ -466,9 +504,16 @@ button,a{touch-action:manipulation;}
             </div>
             <div className="qr-box">
               <div className="qr-input-row">
-                <input className="qr-input" type="text" placeholder={t.qr_placeholder}
-                  value={qrInput} onChange={e => setQrInput(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && generateQR()} dir="ltr"/>
+                <input
+                  className="qr-input"
+                  type="url"
+                  placeholder={t.qr_placeholder}
+                  value={qrInput}
+                  onChange={e => setQrInput(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && generateQR()}
+                  dir="ltr"
+                  aria-label={t.qr_placeholder}
+                />
                 <button className="tool-btn" onClick={generateQR}>
                   <span style={{display:'inline-flex',alignItems:'center',gap:6}}>
                     <QRIcon s={14} color="white"/> {t.qr_btn}
@@ -483,14 +528,13 @@ button,a{touch-action:manipulation;}
                   <div className="qr-info">
                     <div className="qr-info-label">{lang === 'en' ? 'Routes to' : 'يحوّل إلى'}</div>
                     <div className="qr-info-url">{qrResult}</div>
-                    <button className="qr-dl-btn" onClick={downloadQR}>⬇ {t.qr_download}</button>
+                    <button className="qr-dl-btn" onClick={downloadQR}>
+                      <IcoDownload s={14} c="white"/> {t.qr_download}
+                    </button>
                   </div>
                 </div>
               )}
               <div className="qr-tip">{t.qr_tip}</div>
-            </div>
-            <div className="consent" style={{marginTop:12}}>
-              {t.consent_use_1} <a href="/terms">{t.consent_terms}</a> {t.consent_and} <a href="/privacy">{t.consent_privacy}</a>.
             </div>
           </div>
         </section>
@@ -511,8 +555,8 @@ button,a{touch-action:manipulation;}
                 }</p>
                 <button className="bio-cta-btn" onClick={() => setShowSignupPrompt(true)}>{t.bio_cta} →</button>
               </div>
-              <div className="bio-preview">
-                <div className="bio-avi">🚀</div>
+              <div className="bio-preview" aria-hidden="true">
+                <div className="bio-avi"><BioAvatarIcon /></div>
                 <div className="bio-name">{t.bio_preview_name}</div>
                 <div className="bio-desc">{t.bio_preview_desc}</div>
                 <div className="bio-links">
@@ -562,8 +606,6 @@ button,a{touch-action:manipulation;}
               <div className="footer-tagline">{t.footer_tagline}</div>
             </div>
             <div className="footer-links">
-              <a className="footer-link" href="/about">{t.footer_about}</a>
-              <a className="footer-link" href="/blog">{t.footer_blog}</a>
               <a className="footer-link" href="/terms">{t.footer_terms}</a>
               <a className="footer-link" href="/privacy">{t.footer_privacy}</a>
               <a className="footer-link" href="mailto:legal@j2z.com">{t.footer_contact}</a>
@@ -573,22 +615,26 @@ button,a{touch-action:manipulation;}
         </footer>
 
         {showSignupPrompt && (
-          <div className="prompt-overlay" onClick={() => setShowSignupPrompt(false)}>
+          <div className="prompt-overlay" onClick={() => setShowSignupPrompt(false)} role="dialog" aria-modal="true" aria-label="Sign up">
             <div className="prompt-box" onClick={e => e.stopPropagation()} dir={dir}>
               <div className="prompt-icon"><Logo s={36}/></div>
               <div className="prompt-title">{t.prompt_title}</div>
               <div className="prompt-sub">{t.prompt_sub}</div>
               <div className="prompt-btns">
                 <button className="prompt-btn primary" onClick={() => window.location.href='/auth'}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/></svg>
-                  {t.prompt_btn_apple}
-                </button>
-                <button className="prompt-btn" onClick={() => window.location.href='/auth'}>
-                  <svg width="16" height="16" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                  </svg>
                   {t.prompt_btn_google}
                 </button>
                 <button className="prompt-btn" onClick={() => window.location.href='/auth'}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2F2A24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2F2A24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                    <polyline points="22,6 12,13 2,6"/>
+                  </svg>
                   {t.prompt_btn_email}
                 </button>
               </div>
