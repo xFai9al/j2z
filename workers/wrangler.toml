@@ -1,0 +1,22 @@
+name = "j2z-redirect"
+main = "redirect-worker.js"
+compatibility_date = "2024-09-23"
+
+# Route: intercept all j2z.com traffic, let Worker decide what to pass through
+routes = [
+  { pattern = "j2z.com/*", zone_name = "j2z.com" }
+]
+
+# KV namespace for slug → URL cache
+# Replace id with real namespace ID after running:
+#   npx wrangler kv namespace create REDIRECT_KV
+[[kv_namespaces]]
+binding = "REDIRECT_KV"
+id = "REPLACE_WITH_YOUR_KV_NAMESPACE_ID"
+
+[vars]
+SUPABASE_URL = "https://jzjyzmizjvlgmsaazfcc.supabase.co"
+
+# Secret — run once after deploy:
+#   npx wrangler secret put SUPABASE_SERVICE_ROLE_KEY
+# Then paste your SUPABASE_SERVICE_ROLE_KEY value

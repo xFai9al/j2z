@@ -259,9 +259,9 @@ a { text-decoration: none; color: inherit; }
 .td-clicks { font-weight: 700; color: var(--ink); text-align: center; font-variant-numeric: tabular-nums; }
 .td-type { display: inline-flex; align-items: center; gap: 3px; background: var(--sub-row); border-radius: 4px; padding: 1px 6px; font-size: 10px; font-weight: 600; color: var(--muted2); text-transform: uppercase; }
 .block-add-row { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; align-items: flex-end; }
-.bl-input { flex: 1; min-width: 140px; padding: 9px 12px; background: var(--input-bg); border: 1.5px solid var(--border); border-radius: 10px; font-size: 13px; color: var(--ink); outline: none; transition: border-color .15s; direction: ltr; }
+.bl-input { flex: 1; min-width: 140px; padding: 9px 12px; background: var(--input-bg); border: 1.5px solid var(--border); border-radius: 10px; font-size: 16px; color: var(--ink); outline: none; transition: border-color .15s; direction: ltr; }
 .bl-input:focus { border-color: #D45A3F; box-shadow: 0 0 0 3px rgba(212,90,63,.12); }
-.bl-select { padding: 9px 12px; background: var(--input-bg); border: 1.5px solid var(--border); border-radius: 10px; font-size: 13px; color: var(--ink); outline: none; cursor: pointer; }
+.bl-select { padding: 9px 12px; background: var(--input-bg); border: 1.5px solid var(--border); border-radius: 10px; font-size: 16px; color: var(--ink); outline: none; cursor: pointer; }
 .bl-add { padding: 9px 18px; background: #E8765C; color: white; border: none; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer; transition: all .15s; white-space: nowrap; touch-action: manipulation; min-height: 44px; }
 .bl-add:hover { background: #D45A3F; transform: translateY(-1px); }
 .bl-add:disabled { background: var(--muted); cursor: not-allowed; transform: none; }

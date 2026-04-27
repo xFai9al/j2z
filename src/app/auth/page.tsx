@@ -244,7 +244,7 @@ body{background:var(--paper);color:var(--ink);font-family:'Space Grotesk','Tajaw
 .divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border);}
 .field-group{margin-bottom:14px;}
 .field-label{display:block;font-size:13px;font-weight:600;color:var(--ink);margin-bottom:6px;}
-.field-input{width:100%;padding:13px 14px;background:white;border:1.5px solid var(--border);border-radius:10px;font-size:15px;color:var(--ink);font-family:inherit;outline:none;transition:all .15s;}
+.field-input{width:100%;padding:13px 14px;background:white;border:1.5px solid var(--border);border-radius:10px;font-size:16px;color:var(--ink);font-family:inherit;outline:none;transition:all .15s;}
 .field-input:focus{border-color:var(--coral);box-shadow:0 0 0 4px var(--coral-soft);}
 .field-input::placeholder{color:var(--ink-mute);}
 .pass-wrap{position:relative;}

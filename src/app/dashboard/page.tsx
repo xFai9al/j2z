@@ -642,12 +642,12 @@ body { font-family: 'Space Grotesk', 'Tajawal', sans-serif; -webkit-font-smoothi
 .btn-s.ok { background: #EDF1EC; color: #3E5F3C; border-color: #8FA68E; }
 .btn-s.rm:hover { border-color: #E05252; color: #E05252; background: #FDEAEA; }
 .tool-row { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
-.t-input { flex: 1; min-width: 160px; padding: 10px 12px; background: var(--surface); border: 1.5px solid var(--border); border-radius: 10px; font-size: 14px; color: var(--ink); font-family: inherit; outline: none; transition: all .15s; }
+.t-input { flex: 1; min-width: 160px; padding: 10px 12px; background: var(--surface); border: 1.5px solid var(--border); border-radius: 10px; font-size: 16px; color: var(--ink); font-family: inherit; outline: none; transition: all .15s; }
 .t-input:focus { border-color: #D45A3F; box-shadow: 0 0 0 3px #FBEDE8; }
 .t-input::placeholder { color: var(--ink3); }
 .slug-box { display: flex; align-items: center; gap: 3px; background: var(--surface2); border: 1.5px solid var(--border); border-radius: 10px; padding: 10px 12px; }
 .slug-pre { font-size: 11.5px; color: var(--ink3); font-family: monospace; white-space: nowrap; }
-.slug-in { border: none; outline: none; background: transparent; font-size: 13px; font-family: monospace; font-weight: 600; color: var(--ink); width: 80px; }
+.slug-in { border: none; outline: none; background: transparent; font-size: 16px; font-family: monospace; font-weight: 600; color: var(--ink); width: 80px; }
 .go-btn { padding: 10px 20px; background: #E8765C; color: white; border: none; border-radius: 10px; font-size: 13.5px; font-weight: 700; cursor: pointer; font-family: inherit; white-space: nowrap; transition: all .15s; display: inline-flex; align-items: center; gap: 6px; touch-action: manipulation; }
 .go-btn:hover { background: #D45A3F; transform: translateY(-1px); }
 .go-btn:disabled { background: var(--ink3); cursor: not-allowed; transform: none; }
