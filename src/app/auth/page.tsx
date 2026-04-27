@@ -3,8 +3,146 @@ export const dynamic = 'force-dynamic'
 import { useState, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
-type Mode = 'signup' | 'signin' | 'email-signup' | 'email-signin' | 'verify' | 'dashboard-preview'
+type Mode = 'signup' | 'signin' | 'email-signup' | 'email-signin' | 'verify'
 type Lang = 'en' | 'ar'
+
+// ── Static components outside component ──────────────────────────────────────
+
+const Logo = ({ s = 44 }: { s?: number }) => (
+  <svg viewBox="0 0 60 60" width={s} height={s} fill="none">
+    <rect x="0" y="0" width="60" height="60" rx="16" fill="#FBEDE8"/>
+    <rect x="28" y="16" width="5" height="20" fill="#F4A593"/>
+    <rect x="33" y="13" width="5" height="23" fill="#E8765C"/>
+    <rect x="38" y="10" width="5" height="26" fill="#D45A3F"/>
+    <path d="M43 10 L50 10 L43 18 Z" fill="#F4A593"/>
+    <path d="M12 36 L43 36 L43 48 L20 48 Q12 48 12 42 Z" fill="#D45A3F"/>
+  </svg>
+)
+
+const GoogleIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24">
+    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+  </svg>
+)
+
+const EmailIcon = () => (
+  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>
+  </svg>
+)
+
+const BenefitLinkIcon = () => (
+  <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.75)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+  </svg>
+)
+
+const BenefitQrIcon = () => (
+  <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.75)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+    <rect x="3" y="14" width="7" height="7" rx="1"/>
+    <line x1="6" y1="6" x2="6.01" y2="6" strokeWidth="3"/><line x1="17" y1="6" x2="17.01" y2="6" strokeWidth="3"/>
+    <line x1="6" y1="17" x2="6.01" y2="17" strokeWidth="3"/>
+    <line x1="14" y1="14" x2="21" y2="14"/><line x1="14" y1="17" x2="17" y2="17"/>
+    <line x1="20" y1="17" x2="21" y2="17"/><line x1="14" y1="20" x2="21" y2="20"/>
+  </svg>
+)
+
+const BenefitChartIcon = () => (
+  <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.75)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/>
+    <line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/>
+  </svg>
+)
+
+const BenefitBioIcon = () => (
+  <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.75)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+    <circle cx="12" cy="7" r="4"/>
+  </svg>
+)
+
+const VerifyMailIcon = () => (
+  <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="var(--sage)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+    <polyline points="22,6 12,13 2,6"/>
+  </svg>
+)
+
+const EyeIcon = ({ open }: { open: boolean }) => open ? (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+  </svg>
+) : (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>
+  </svg>
+)
+
+// ── Static translation data ───────────────────────────────────────────────────
+
+const T = {
+  en: {
+    back_home: '← Back to J2z.com', lang_toggle: 'العربية',
+    signup_headline: 'Create your account', signup_sub: 'Free forever. No credit card needed.',
+    signup_google: 'Continue with Google', signup_email: 'Continue with email',
+    or: 'or', already: 'Already have an account?', signin_link: 'Sign in',
+    signin_headline: 'Welcome back', signin_sub: 'Good to see you again.',
+    signin_google: 'Sign in with Google', signin_email: 'Sign in with email',
+    no_account: "Don't have an account?", signup_link: 'Sign up free',
+    email_signup_headline: 'Create your account',
+    name_label: 'Your name', name_ph: 'Ahmed Al-Rashid',
+    email_label: 'Email address', email_ph: 'you@example.com',
+    pass_label: 'Password', pass_ph: 'At least 8 characters',
+    create_btn: 'Create account →',
+    terms: 'By signing up, you agree to our', terms_link: 'Terms & Privacy Policy',
+    email_signin_headline: 'Sign in to J2z', email_signin_sub: 'Enter your credentials to continue.',
+    signin_btn: 'Sign in →', forgot: 'Forgot password?',
+    verify_headline: 'Check your inbox', verify_sub_1: 'We sent a verification link to',
+    verify_sub_2: 'Click the link to activate your account.',
+    resend: 'Resend email', resent: '✓ Sent!', change_email: 'Use a different email',
+    loading_google: 'Connecting to Google...',
+    benefit_headline: "Everything you need, nothing you don't.",
+    b1_title: 'Unlimited short links', b1_desc: 'Create as many as you need. No monthly caps.',
+    b2_title: 'QR codes that evolve', b2_desc: 'Print once, edit destination forever.',
+    b3_title: 'Free analytics', b3_desc: 'Clicks, countries, devices — all free.',
+    b4_title: 'Bio link page', b4_desc: 'One link for all your socials at j2z.com/you',
+    tagline: 'Print once. Update forever.',
+  },
+  ar: {
+    back_home: '← العودة إلى J2z.com', lang_toggle: 'English',
+    signup_headline: 'أنشئ حسابك', signup_sub: 'مجاني للأبد. بدون بطاقة ائتمان.',
+    signup_google: 'المتابعة عبر Google', signup_email: 'المتابعة عبر الإيميل',
+    or: 'أو', already: 'لديك حساب بالفعل؟', signin_link: 'تسجيل الدخول',
+    signin_headline: 'أهلاً بعودتك', signin_sub: 'يسعدنا رؤيتك مجدداً.',
+    signin_google: 'الدخول عبر Google', signin_email: 'الدخول عبر الإيميل',
+    no_account: 'ليس لديك حساب؟', signup_link: 'سجّل مجاناً',
+    email_signup_headline: 'أنشئ حسابك',
+    name_label: 'اسمك', name_ph: 'أحمد الراشد',
+    email_label: 'البريد الإلكتروني', email_ph: 'you@example.com',
+    pass_label: 'كلمة المرور', pass_ph: '٨ أحرف على الأقل',
+    create_btn: 'إنشاء الحساب →',
+    terms: 'بالتسجيل، أنت توافق على', terms_link: 'الشروط وسياسة الخصوصية',
+    email_signin_headline: 'الدخول إلى J2z', email_signin_sub: 'أدخل بياناتك للمتابعة.',
+    signin_btn: 'الدخول →', forgot: 'نسيت كلمة المرور؟',
+    verify_headline: 'تحقق من بريدك', verify_sub_1: 'أرسلنا رابط تفعيل إلى',
+    verify_sub_2: 'اضغط على الرابط لتفعيل حسابك.',
+    resend: 'إعادة الإرسال', resent: '✓ تم الإرسال!', change_email: 'استخدام بريد آخر',
+    loading_google: 'جاري الاتصال بـ Google...',
+    benefit_headline: 'كل ما تحتاج، بدون زيادة.',
+    b1_title: 'روابط مختصرة بلا حدود', b1_desc: 'أنشئ بقدر ما تريد. بدون سقف شهري.',
+    b2_title: 'أكواد QR قابلة للتحديث', b2_desc: 'اطبع مرة، عدّل الوجهة للأبد.',
+    b3_title: 'تحليلات مجانية', b3_desc: 'نقرات، دول، أجهزة — كلها مجانية.',
+    b4_title: 'صفحة البالنك', b4_desc: 'رابط واحد لكل حساباتك على j2z.com/أنت',
+    tagline: 'اطبعها مرة. عدّلها للأبد.',
+  },
+}
+
+// ── Component ─────────────────────────────────────────────────────────────────
 
 export default function J2zAuth() {
   const [lang, setLang] = useState<Lang>('en')
@@ -23,78 +161,18 @@ export default function J2zAuth() {
     return supabaseRef.current
   }
 
-  const Logo = ({ s = 44 }: { s?: number }) => (
-    <svg viewBox="0 0 60 60" width={s} height={s} fill="none">
-      <rect x="0" y="0" width="60" height="60" rx="16" fill="#FBEDE8"/>
-      <rect x="28" y="16" width="5" height="20" fill="#F4A593"/>
-      <rect x="33" y="13" width="5" height="23" fill="#E8765C"/>
-      <rect x="38" y="10" width="5" height="26" fill="#D45A3F"/>
-      <path d="M43 10 L50 10 L43 18 Z" fill="#F4A593"/>
-      <path d="M12 36 L43 36 L43 48 L20 48 Q12 48 12 42 Z" fill="#D45A3F"/>
-    </svg>
-  )
-
-  const T = {
-    en: {
-      back_home: '← Back to J2z.com', lang_toggle: 'العربية',
-      signup_headline: 'Create your account', signup_sub: 'Free forever. No credit card needed.',
-      signup_google: 'Continue with Google', signup_apple: 'Continue with Apple', signup_email: 'Continue with email',
-      or: 'or', already: 'Already have an account?', signin_link: 'Sign in',
-      signin_headline: 'Welcome back', signin_sub: 'Good to see you again.',
-      signin_google: 'Sign in with Google', signin_apple: 'Sign in with Apple', signin_email: 'Sign in with email',
-      no_account: "Don't have an account?", signup_link: 'Sign up free',
-      email_signup_headline: 'Create your account',
-      name_label: 'Your name', name_ph: 'Ahmed Al-Rashid',
-      email_label: 'Email address', email_ph: 'you@example.com',
-      pass_label: 'Password', pass_ph: 'At least 8 characters',
-      create_btn: 'Create account →',
-      terms: 'By signing up, you agree to our', terms_link: 'Terms & Privacy Policy',
-      email_signin_headline: 'Sign in to J2z', email_signin_sub: 'Enter your credentials to continue.',
-      signin_btn: 'Sign in →', forgot: 'Forgot password?',
-      verify_headline: 'Check your inbox', verify_sub_1: 'We sent a verification link to',
-      verify_sub_2: 'Click the link to activate your account.',
-      resend: 'Resend email', resent: '✓ Sent!', change_email: 'Use a different email',
-      loading_google: 'Connecting to Google...', loading_apple: 'Connecting to Apple...',
-      benefit_headline: "Everything you need, nothing you don't.",
-      b1_title: 'Unlimited short links', b1_desc: 'Create as many as you need. No monthly caps.',
-      b2_title: 'QR codes that evolve', b2_desc: 'Print once, edit destination forever.',
-      b3_title: 'Free analytics', b3_desc: 'Clicks, countries, devices — all free.',
-      b4_title: 'Bio link page', b4_desc: 'One link for all your socials at j2z.com/you',
-      tagline: 'Print once. Update forever.',
-    },
-    ar: {
-      back_home: '← العودة إلى J2z.com', lang_toggle: 'English',
-      signup_headline: 'أنشئ حسابك', signup_sub: 'مجاني للأبد. بدون بطاقة ائتمان.',
-      signup_google: 'المتابعة عبر Google', signup_apple: 'المتابعة عبر Apple', signup_email: 'المتابعة عبر الإيميل',
-      or: 'أو', already: 'لديك حساب بالفعل؟', signin_link: 'تسجيل الدخول',
-      signin_headline: 'أهلاً بعودتك', signin_sub: 'يسعدنا رؤيتك مجدداً.',
-      signin_google: 'الدخول عبر Google', signin_apple: 'الدخول عبر Apple', signin_email: 'الدخول عبر الإيميل',
-      no_account: 'ليس لديك حساب؟', signup_link: 'سجّل مجاناً',
-      email_signup_headline: 'أنشئ حسابك',
-      name_label: 'اسمك', name_ph: 'أحمد الراشد',
-      email_label: 'البريد الإلكتروني', email_ph: 'you@example.com',
-      pass_label: 'كلمة المرور', pass_ph: '٨ أحرف على الأقل',
-      create_btn: 'إنشاء الحساب →',
-      terms: 'بالتسجيل، أنت توافق على', terms_link: 'الشروط وسياسة الخصوصية',
-      email_signin_headline: 'الدخول إلى J2z', email_signin_sub: 'أدخل بياناتك للمتابعة.',
-      signin_btn: 'الدخول →', forgot: 'نسيت كلمة المرور؟',
-      verify_headline: 'تحقق من بريدك', verify_sub_1: 'أرسلنا رابط تفعيل إلى',
-      verify_sub_2: 'اضغط على الرابط لتفعيل حسابك.',
-      resend: 'إعادة الإرسال', resent: '✓ تم الإرسال!', change_email: 'استخدام بريد آخر',
-      loading_google: 'جاري الاتصال بـ Google...', loading_apple: 'جاري الاتصال بـ Apple...',
-      benefit_headline: 'كل ما تحتاج، بدون زيادة.',
-      b1_title: 'روابط مختصرة بلا حدود', b1_desc: 'أنشئ بقدر ما تريد. بدون سقف شهري.',
-      b2_title: 'أكواد QR قابلة للتحديث', b2_desc: 'اطبع مرة، عدّل الوجهة للأبد.',
-      b3_title: 'تحليلات مجانية', b3_desc: 'نقرات، دول، أجهزة — كلها مجانية.',
-      b4_title: 'صفحة البالنك', b4_desc: 'رابط واحد لكل حساباتك على j2z.com/أنت',
-      tagline: 'اطبعها مرة. عدّلها للأبد.',
-    },
-  }
   const t = T[lang]
+
+  const benefits = [
+    { Icon: BenefitLinkIcon, title: t.b1_title, desc: t.b1_desc },
+    { Icon: BenefitQrIcon, title: t.b2_title, desc: t.b2_desc },
+    { Icon: BenefitChartIcon, title: t.b3_title, desc: t.b3_desc },
+    { Icon: BenefitBioIcon, title: t.b4_title, desc: t.b4_desc },
+  ]
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || (typeof window !== 'undefined' ? window.location.origin : 'https://j2z.com')
 
-  const handleOAuth = async (provider: 'google' | 'apple') => {
+  const handleOAuth = async (provider: 'google') => {
     setLoading(provider)
     setError('')
     const { error } = await getSupabase().auth.signInWithOAuth({
@@ -133,76 +211,6 @@ export default function J2zAuth() {
     setTimeout(() => setResent(false), 3000)
   }
 
-  const GoogleIcon = () => (
-    <svg width="18" height="18" viewBox="0 0 24 24">
-      <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-      <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-      <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-      <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-    </svg>
-  )
-  const AppleIcon = () => (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="var(--ink)">
-      <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
-    </svg>
-  )
-  const EmailIcon = () => (
-    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>
-    </svg>
-  )
-  const BenefitLinkIcon = () => (
-    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.75)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
-      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
-    </svg>
-  )
-  const BenefitQrIcon = () => (
-    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.75)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
-      <rect x="3" y="14" width="7" height="7" rx="1"/>
-      <line x1="6" y1="6" x2="6.01" y2="6" strokeWidth="3"/><line x1="17" y1="6" x2="17.01" y2="6" strokeWidth="3"/>
-      <line x1="6" y1="17" x2="6.01" y2="17" strokeWidth="3"/>
-      <line x1="14" y1="14" x2="21" y2="14"/><line x1="14" y1="17" x2="17" y2="17"/>
-      <line x1="20" y1="17" x2="21" y2="17"/><line x1="14" y1="20" x2="21" y2="20"/>
-    </svg>
-  )
-  const BenefitChartIcon = () => (
-    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.75)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/>
-      <line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/>
-    </svg>
-  )
-  const BenefitBioIcon = () => (
-    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.75)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-      <circle cx="12" cy="7" r="4"/>
-    </svg>
-  )
-  const VerifyMailIcon = () => (
-    <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="var(--sage)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-      <polyline points="22,6 12,13 2,6"/>
-    </svg>
-  )
-
-  const benefits = [
-    { Icon: BenefitLinkIcon, title: t.b1_title, desc: t.b1_desc },
-    { Icon: BenefitQrIcon, title: t.b2_title, desc: t.b2_desc },
-    { Icon: BenefitChartIcon, title: t.b3_title, desc: t.b3_desc },
-    { Icon: BenefitBioIcon, title: t.b4_title, desc: t.b4_desc },
-  ]
-
-  const EyeIcon = ({ open }: { open: boolean }) => open ? (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
-    </svg>
-  ) : (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>
-    </svg>
-  )
-
   const css = `
 @import url('https://fonts.googleapis.com/css2?family=Cal+Sans&family=Space+Grotesk:wght@400;500;600;700&family=Tajawal:wght@500;700;800&display=swap');
 :root{--paper:#FBFAF7;--cream:#F5F2EC;--warm:#EFEAE0;--ink:#2F2A24;--ink-soft:#6B6257;--ink-mute:#A89F92;--border:#E8E2D6;--coral-deep:#D45A3F;--coral:#E8765C;--coral-light:#F4A593;--coral-soft:#FBEDE8;--sage:#8FA68E;--sage-soft:#EDF1EC;}
@@ -218,14 +226,14 @@ body{background:var(--paper);color:var(--ink);font-family:'Space Grotesk','Tajaw
 .top-bar-right{display:flex;align-items:center;gap:10px;}
 .logo-row{display:flex;align-items:center;gap:8px;cursor:pointer;}
 .logo-name{font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:700;letter-spacing:-.04em;}
-.lang-btn{background:var(--cream);border:1px solid var(--border);padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;color:var(--ink);font-family:inherit;}
+.lang-btn{background:var(--cream);border:1px solid var(--border);padding:0 12px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;color:var(--ink);font-family:inherit;min-height:44px;display:inline-flex;align-items:center;}
 .lang-btn:hover{background:var(--warm);}
 .form-area{flex:1;display:flex;flex-direction:column;justify-content:center;max-width:380px;width:100%;margin:0 auto;animation:fadeUp .3s ease;}
 @keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
 .form-headline{font-family:'Cal Sans','Tajawal',sans-serif;font-size:clamp(26px,4vw,34px);font-weight:700;letter-spacing:-.03em;margin-bottom:6px;line-height:1.1;}
 .form-sub{font-size:15px;color:var(--ink-soft);margin-bottom:28px;}
 .oauth-stack{display:flex;flex-direction:column;gap:10px;margin-bottom:22px;}
-.oauth-btn{display:flex;align-items:center;justify-content:center;gap:10px;padding:13px 20px;background:white;border:1.5px solid var(--border);border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;color:var(--ink);transition:all .2s;position:relative;overflow:hidden;}
+.oauth-btn{display:flex;align-items:center;justify-content:center;gap:10px;padding:13px 20px;background:white;border:1.5px solid var(--border);border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;color:var(--ink);transition:all .2s;position:relative;overflow:hidden;min-height:48px;}
 .oauth-btn:hover{border-color:var(--coral-light);background:var(--coral-soft);transform:translateY(-1px);box-shadow:0 4px 12px rgba(232,118,92,.1);}
 .oauth-btn.loading{color:var(--ink-mute);cursor:not-allowed;pointer-events:none;}
 .oauth-btn.email-btn{border-color:var(--ink);background:var(--ink);color:white;}
@@ -248,7 +256,7 @@ body{background:var(--paper);color:var(--ink);font-family:'Space Grotesk','Tajaw
 .forgot-link{display:block;text-align:right;font-size:12.5px;color:var(--ink-soft);cursor:pointer;margin-top:6px;text-decoration:none;}
 [dir=rtl] .forgot-link{text-align:left;}
 .forgot-link:hover{color:var(--coral-deep);}
-.submit-btn{width:100%;padding:14px;background:var(--coral);color:white;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .2s;margin-top:6px;box-shadow:0 4px 12px rgba(232,118,92,.25);}
+.submit-btn{width:100%;padding:14px;background:var(--coral);color:white;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .2s;margin-top:6px;box-shadow:0 4px 12px rgba(232,118,92,.25);min-height:52px;}
 .submit-btn:hover{background:var(--coral-deep);transform:translateY(-1px);}
 .submit-btn:disabled{background:var(--ink-mute);cursor:not-allowed;transform:none;box-shadow:none;}
 .terms-text{font-size:11.5px;color:var(--ink-mute);text-align:center;margin-top:12px;line-height:1.5;}
@@ -276,7 +284,7 @@ body{background:var(--paper);color:var(--ink);font-family:'Space Grotesk','Tajaw
 .right-headline em{font-style:normal;color:var(--coral-light);}
 .benefit-list{display:flex;flex-direction:column;gap:22px;}
 .benefit-item{display:flex;align-items:flex-start;gap:14px;}
-.benefit-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);}
+.benefit-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);}
 .benefit-text h4{font-family:'Cal Sans',sans-serif;font-size:15px;font-weight:600;color:white;margin-bottom:2px;}
 .benefit-text p{font-size:13px;color:rgba(255,255,255,.6);line-height:1.45;}
 .right-tagline{margin-top:48px;padding-top:24px;border-top:1px solid rgba(255,255,255,.1);font-family:'Cal Sans','Tajawal',sans-serif;font-size:18px;color:rgba(255,255,255,.5);font-style:italic;}
@@ -294,20 +302,17 @@ button,a{touch-action:manipulation;}
             <a className="back-link" href="/">{t.back_home}</a>
             <div className="top-bar-right">
               <div className="logo-row"><Logo s={30}/><span className="logo-name">J2z</span></div>
-              <button className="lang-btn" onClick={() => setLang(lang === 'en' ? 'ar' : 'en')}>{t.lang_toggle}</button>
+              <button className="lang-btn" onClick={() => setLang(lang === 'en' ? 'ar' : 'en')} aria-label="Switch language">{t.lang_toggle}</button>
             </div>
           </div>
 
-          {error && <div className="error-msg">{error}</div>}
+          {error && <div className="error-msg" role="alert">{error}</div>}
 
           {mode === 'signup' && (
             <div className="form-area" key="signup">
               <h1 className="form-headline">{t.signup_headline}</h1>
               <p className="form-sub">{t.signup_sub}</p>
               <div className="oauth-stack">
-                <button className={`oauth-btn ${loading === 'apple' ? 'loading' : ''}`} onClick={() => handleOAuth('apple')}>
-                  {loading === 'apple' ? <><div className="oauth-spin"/>{t.loading_apple}</> : <><AppleIcon/>{t.signup_apple}</>}
-                </button>
                 <button className={`oauth-btn ${loading === 'google' ? 'loading' : ''}`} onClick={() => handleOAuth('google')}>
                   {loading === 'google' ? <><div className="oauth-spin"/>{t.loading_google}</> : <><GoogleIcon/>{t.signup_google}</>}
                 </button>
@@ -323,9 +328,6 @@ button,a{touch-action:manipulation;}
               <h1 className="form-headline">{t.signin_headline}</h1>
               <p className="form-sub">{t.signin_sub}</p>
               <div className="oauth-stack">
-                <button className={`oauth-btn ${loading === 'apple' ? 'loading' : ''}`} onClick={() => handleOAuth('apple')}>
-                  {loading === 'apple' ? <><div className="oauth-spin"/>{t.loading_apple}</> : <><AppleIcon/>{t.signin_apple}</>}
-                </button>
                 <button className={`oauth-btn ${loading === 'google' ? 'loading' : ''}`} onClick={() => handleOAuth('google')}>
                   {loading === 'google' ? <><div className="oauth-spin"/>{t.loading_google}</> : <><GoogleIcon/>{t.signin_google}</>}
                 </button>
@@ -348,13 +350,13 @@ button,a{touch-action:manipulation;}
               </div>
               <div className="field-group">
                 <label className="field-label">{t.email_label}</label>
-                <input className="field-input" type="email" placeholder={t.email_ph} value={email} onChange={e => setEmail(e.target.value)} dir="ltr"/>
+                <input className="field-input" type="email" placeholder={t.email_ph} value={email} onChange={e => setEmail(e.target.value)} dir="ltr" autoComplete="email"/>
               </div>
               <div className="field-group">
                 <label className="field-label">{t.pass_label}</label>
                 <div className="pass-wrap">
-                  <input className="field-input" type={showPass ? 'text' : 'password'} placeholder={t.pass_ph} value={password} onChange={e => setPassword(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleEmailSignup()} dir="ltr"/>
-                  <button className="pass-eye" onClick={() => setShowPass(!showPass)}><EyeIcon open={showPass}/></button>
+                  <input className="field-input" type={showPass ? 'text' : 'password'} placeholder={t.pass_ph} value={password} onChange={e => setPassword(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleEmailSignup()} dir="ltr" autoComplete="new-password"/>
+                  <button className="pass-eye" onClick={() => setShowPass(!showPass)} aria-label={showPass ? 'Hide password' : 'Show password'}><EyeIcon open={showPass}/></button>
                 </div>
               </div>
               <button className="submit-btn" onClick={handleEmailSignup} disabled={!email.trim() || !password.trim() || loading === 'email'}>
@@ -374,13 +376,13 @@ button,a{touch-action:manipulation;}
               <p className="form-sub">{t.email_signin_sub}</p>
               <div className="field-group">
                 <label className="field-label">{t.email_label}</label>
-                <input className="field-input" type="email" placeholder={t.email_ph} value={email} onChange={e => setEmail(e.target.value)} dir="ltr" autoFocus/>
+                <input className="field-input" type="email" placeholder={t.email_ph} value={email} onChange={e => setEmail(e.target.value)} dir="ltr" autoFocus autoComplete="email"/>
               </div>
               <div className="field-group">
                 <label className="field-label">{t.pass_label}</label>
                 <div className="pass-wrap">
-                  <input className="field-input" type={showPass ? 'text' : 'password'} placeholder={t.pass_ph} value={password} onChange={e => setPassword(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleEmailSignin()} dir="ltr"/>
-                  <button className="pass-eye" onClick={() => setShowPass(!showPass)}><EyeIcon open={showPass}/></button>
+                  <input className="field-input" type={showPass ? 'text' : 'password'} placeholder={t.pass_ph} value={password} onChange={e => setPassword(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleEmailSignin()} dir="ltr" autoComplete="current-password"/>
+                  <button className="pass-eye" onClick={() => setShowPass(!showPass)} aria-label={showPass ? 'Hide password' : 'Show password'}><EyeIcon open={showPass}/></button>
                 </div>
                 <a className="forgot-link">{t.forgot}</a>
               </div>
