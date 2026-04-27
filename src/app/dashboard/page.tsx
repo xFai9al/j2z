@@ -736,7 +736,7 @@ body { font-family: 'Space Grotesk', 'Tajawal', sans-serif; -webkit-font-smoothi
 .bio-st-num { font-family: 'Cal Sans', sans-serif; font-size: 26px; font-weight: 700; color: #D45A3F; }
 .bio-st-lbl { font-size: 12px; color: var(--ink2); font-weight: 500; }
 .bio-mock { background: linear-gradient(145deg, #2F2A24 0%, #1E1A14 100%); border-radius: 20px; padding: 26px 22px; color: white; text-align: center; position: relative; overflow: hidden; }
-.bio-mock::before { content:''; position:absolute; top:-60px; left:-60px; width:300px; height:300px; background:radial-gradient(circle, rgba(232,118,92,.18), transparent 60%); pointer-events:none; }
+.bio-mock-glow { position:absolute; top:-60px; left:-60px; width:300px; height:300px; pointer-events:none; border-radius:50%; }
 .bio-avi { width:56px; height:56px; border-radius:50%; background:linear-gradient(135deg,#E8765C,#E8C66B); margin:0 auto 10px; display:flex; align-items:center; justify-content:center; font-size:22px; position:relative; z-index:1; }
 .bio-nm { font-family:'Cal Sans',sans-serif; font-size:16px; font-weight:700; margin-bottom:3px; position:relative; z-index:1; }
 .bio-dc { font-size:11px; color:rgba(255,255,255,.6); margin-bottom:14px; position:relative; z-index:1; }
