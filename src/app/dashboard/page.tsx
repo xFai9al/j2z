@@ -558,15 +558,15 @@ body { font-family: 'Space Grotesk', 'Tajawal', sans-serif; -webkit-font-smoothi
 .wrap { display: flex; flex-direction: column; min-height: 100vh; background: var(--bg); color: var(--ink); transition: background .25s, color .25s; }
 .topbar { background: var(--topbar); border-bottom: 1px solid var(--border); padding: 0 20px; height: 56px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 300; flex-shrink: 0; gap: 12px; transition: background .25s, border-color .25s; }
 .topbar-left { display: flex; align-items: center; gap: 10px; }
-.hamburger { display: none; background: none; border: 1px solid var(--border); border-radius: 8px; width: 36px; height: 36px; align-items: center; justify-content: center; cursor: pointer; color: var(--ink); font-size: 16px; transition: all .15s; flex-shrink: 0; touch-action: manipulation; }
+.hamburger { display: none; background: none; border: 1px solid var(--border); border-radius: 8px; width: 44px; height: 44px; align-items: center; justify-content: center; cursor: pointer; color: var(--ink); font-size: 16px; transition: all .15s; flex-shrink: 0; touch-action: manipulation; }
 .hamburger:hover { background: var(--hover); }
 @media (max-width: 768px) { .hamburger { display: flex; } }
 .logo-row { display: flex; align-items: center; gap: 8px; cursor: pointer; text-decoration: none; }
 .logo-name { font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 700; letter-spacing: -0.04em; color: var(--ink); }
 .topbar-right { display: flex; align-items: center; gap: 8px; }
-.icon-btn { width: 36px; height: 36px; border-radius: 9px; border: 1px solid var(--border); background: var(--surface2); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; color: var(--ink); transition: all .15s; flex-shrink: 0; touch-action: manipulation; }
+.icon-btn { width: 44px; height: 44px; border-radius: 9px; border: 1px solid var(--border); background: var(--surface2); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; color: var(--ink); transition: all .15s; flex-shrink: 0; touch-action: manipulation; }
 .icon-btn:hover { background: var(--hover); border-color: #D45A3F; }
-.lang-btn { height: 36px; padding: 0 12px; border-radius: 9px; border: 1px solid var(--border); background: var(--surface2); cursor: pointer; font-size: 12px; font-weight: 600; color: var(--ink); font-family: inherit; transition: all .15s; touch-action: manipulation; }
+.lang-btn { min-height: 44px; padding: 0 12px; border-radius: 9px; border: 1px solid var(--border); background: var(--surface2); cursor: pointer; font-size: 12px; font-weight: 600; color: var(--ink); font-family: inherit; transition: all .15s; touch-action: manipulation; display: inline-flex; align-items: center; }
 .lang-btn:hover { background: var(--hover); border-color: #D45A3F; }
 .avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #E8765C 0%, #E8C66B 100%); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 14px; cursor: pointer; flex-shrink: 0; }
 .body-row { display: flex; flex: 1; min-height: 0; }
@@ -637,7 +637,7 @@ body { font-family: 'Space Grotesk', 'Tajawal', sans-serif; -webkit-font-smoothi
 .pill b { color: var(--ink); font-weight: 600; }
 .acts { display: flex; gap: 5px; margin-left: auto; }
 [dir="rtl"] .acts { margin-left: 0; margin-right: auto; }
-.btn-s { padding: 5px 10px; border-radius: 7px; font-size: 11px; font-weight: 600; cursor: pointer; font-family: inherit; border: 1px solid var(--border); background: var(--surface); color: var(--ink); transition: all .15s; white-space: nowrap; touch-action: manipulation; display: inline-flex; align-items: center; gap: 4px; }
+.btn-s { padding: 6px 10px; border-radius: 7px; font-size: 11px; font-weight: 600; cursor: pointer; font-family: inherit; border: 1px solid var(--border); background: var(--surface); color: var(--ink); transition: all .15s; white-space: nowrap; touch-action: manipulation; display: inline-flex; align-items: center; gap: 4px; min-height: 34px; }
 .btn-s:hover { border-color: #F4A593; color: #D45A3F; background: #FBEDE8; }
 .btn-s.ok { background: #EDF1EC; color: #3E5F3C; border-color: #8FA68E; }
 .btn-s.rm:hover { border-color: #E05252; color: #E05252; background: #FDEAEA; }
@@ -722,7 +722,7 @@ body { font-family: 'Space Grotesk', 'Tajawal', sans-serif; -webkit-font-smoothi
 .empty { text-align:center; padding:28px 16px; }
 .empty .ico { font-size:34px; margin-bottom:8px; }
 .empty p { font-size:13px; color:var(--ink3); }
-.theme-btn { width:36px; height:36px; border-radius:9px; border:1px solid var(--border); background:var(--surface2); cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .15s; flex-shrink:0; touch-action:manipulation; }
+.theme-btn { width:44px; height:44px; border-radius:9px; border:1px solid var(--border); background:var(--surface2); cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .15s; flex-shrink:0; touch-action:manipulation; }
 .theme-btn:hover { background:var(--hover); border-color:#D45A3F; }
 .tool-btn { padding:12px 22px; background:#E8765C; color:white; border:none; border-radius:10px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; transition:all .15s; white-space:nowrap; touch-action:manipulation; display:inline-flex; align-items:center; gap:6px; }
 .save-btn { padding:11px 22px; background:#E8765C; color:white; border:none; border-radius:10px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; align-self:flex-start; transition:all .15s; touch-action:manipulation; }
@@ -774,7 +774,7 @@ body { font-family: 'Space Grotesk', 'Tajawal', sans-serif; -webkit-font-smoothi
             <button className="theme-btn" onClick={() => setDark(v => !v)} aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'}>
               {dark ? <IcoSun s={16} c="var(--ink)"/> : <IcoMoon s={16} c="var(--ink)"/>}
             </button>
-            <button className="lang-btn" onClick={() => setLang(l => l === 'en' ? 'ar' : 'en')}>
+            <button className="lang-btn" onClick={() => setLang(l => l === 'en' ? 'ar' : 'en')} aria-label="Switch language">
               {lang === 'en' ? 'العربية' : 'EN'}
             </button>
             <div className="avatar">{avatarLetter}</div>
@@ -958,7 +958,7 @@ body { font-family: 'Space Grotesk', 'Tajawal', sans-serif; -webkit-font-smoothi
                           <div className="edit-lbl">{t.new_dest}</div>
                           <div className="edit-row">
                             <input className="edit-in" value={editDest} onChange={e => setEditDest(e.target.value)} onKeyDown={e => e.key === 'Enter' && saveQrDest(q.id)} dir="ltr"/>
-                            <button className="sv-btn" onClick={() => saveQrDest(q.id)}>✓</button>
+                            <button className="sv-btn" onClick={() => saveQrDest(q.id)} aria-label="Save">✓</button>
                           </div>
                         </div>
                       )}
@@ -1027,8 +1027,8 @@ body { font-family: 'Space Grotesk', 'Tajawal', sans-serif; -webkit-font-smoothi
                       <div>
                         <div className="bio-toggle-label">{bioPage.is_published ? t.bio_published : t.bio_unpublished}</div>
                       </div>
-                      <label className="bio-toggle">
-                        <input type="checkbox" checked={bioPage.is_published} onChange={toggleBioPublish}/>
+                      <label className="bio-toggle" aria-label={bioPage.is_published ? t.bio_published : t.bio_unpublished}>
+                        <input type="checkbox" role="switch" aria-checked={bioPage.is_published} checked={bioPage.is_published} onChange={toggleBioPublish}/>
                         <div className="bio-toggle-track"/>
                         <div className="bio-toggle-thumb"/>
                       </label>
@@ -1189,22 +1189,22 @@ body { font-family: 'Space Grotesk', 'Tajawal', sans-serif; -webkit-font-smoothi
               <div className="card" style={{maxWidth:520}}>
                 <div className="sett-form">
                   <div>
-                    <div className="f-lbl">{t.s_name}</div>
-                    <input className="f-in" value={settingName} onChange={e => setSettingName(e.target.value)} dir={dir}/>
+                    <label className="f-lbl" htmlFor="sett-name">{t.s_name}</label>
+                    <input id="sett-name" className="f-in" value={settingName} onChange={e => setSettingName(e.target.value)} dir={dir} autoComplete="name"/>
                   </div>
                   <div>
-                    <div className="f-lbl">{t.s_email}</div>
-                    <input className="f-in" value={user.email ?? ''} readOnly dir="ltr" style={{opacity:.7,cursor:'not-allowed'}}/>
+                    <label className="f-lbl" htmlFor="sett-email">{t.s_email}</label>
+                    <input id="sett-email" className="f-in" value={user.email ?? ''} readOnly dir="ltr" style={{opacity:.7,cursor:'not-allowed'}} aria-readonly="true"/>
                   </div>
                   <div>
-                    <div className="f-lbl">{t.s_lang}</div>
-                    <select className="f-in" value={lang} onChange={e => setLang(e.target.value as Lang)}>
+                    <label className="f-lbl" htmlFor="sett-lang">{t.s_lang}</label>
+                    <select id="sett-lang" className="f-in" value={lang} onChange={e => setLang(e.target.value as Lang)}>
                       <option value="en">English</option>
                       <option value="ar">العربية</option>
                     </select>
                   </div>
                   <div>
-                    <div className="f-lbl">{lang === 'en' ? 'Theme' : 'المظهر'}</div>
+                    <div className="f-lbl" id="theme-lbl">{lang === 'en' ? 'Theme' : 'المظهر'}</div>
                     <div style={{display:'flex', gap:8}}>
                       {([{v:false, l:lang === 'en' ? 'Light' : 'فاتح', icon:<IcoSun s={14} c="currentColor"/>},{v:true, l:lang === 'en' ? 'Dark' : 'داكن', icon:<IcoMoon s={14} c="currentColor"/>}] as {v:boolean;l:string;icon:React.ReactNode}[]).map(o => (
                         <button key={String(o.v)} onClick={() => setDark(o.v)} style={{flex:1, padding:'10px', borderRadius:9, border:`2px solid ${dark === o.v ? '#D45A3F' : 'var(--border)'}`, background:dark === o.v ? '#FBEDE8' : 'var(--surface2)', color:dark === o.v ? '#D45A3F' : 'var(--ink)', fontWeight:600, cursor:'pointer', fontSize:13, fontFamily:'inherit', transition:'all .15s', display:'inline-flex', alignItems:'center', justifyContent:'center', gap:6, touchAction:'manipulation'}}>
