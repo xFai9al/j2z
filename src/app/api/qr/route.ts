@@ -1,6 +1,15 @@
 import { createClient } from '@/lib/supabase/server'
+import { createServerClient } from '@supabase/ssr'
 import { generateSlug, isValidUrl, ensureHttps } from '@/lib/utils'
 import { NextRequest, NextResponse } from 'next/server'
+
+function makeServiceClient() {
+  return createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co',
+    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key',
+    { cookies: { getAll: () => [], setAll: () => {} } }
+  )
+}
 
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null)
@@ -13,15 +22,16 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid URL' }, { status: 400 })
   }
 
-  const supabase = createClient()
-  const { data: sessionData } = await supabase.auth.getUser()
+  const anonClient = createClient()
+  const { data: sessionData } = await anonClient.auth.getUser()
   if (!sessionData?.user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
   const slug = `qr-${generateSlug(4)}`
+  const service = makeServiceClient()
 
-  const { data, error } = await supabase
+  const { data, error } = await service
     .from('qr_codes')
     .insert({ slug, destination_url: originalUrl, user_id: sessionData.user.id })
     .select()

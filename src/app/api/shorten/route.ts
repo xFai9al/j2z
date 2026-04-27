@@ -1,6 +1,15 @@
 import { createClient } from '@/lib/supabase/server'
+import { createServerClient } from '@supabase/ssr'
 import { generateSlug, isValidUrl, ensureHttps } from '@/lib/utils'
 import { NextRequest, NextResponse } from 'next/server'
+
+function makeServiceClient() {
+  return createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co',
+    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key',
+    { cookies: { getAll: () => [], setAll: () => {} } }
+  )
+}
 
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null)
@@ -14,10 +23,10 @@ export async function POST(req: NextRequest) {
   }
 
   const rawSlug = (body.slug ?? body.customSlug ?? '').trim().replace(/[^a-zA-Z0-9-_]/g, '')
-  const supabase = createClient()
+  const service = makeServiceClient()
 
   if (rawSlug) {
-    const { data: existing } = await supabase
+    const { data: existing } = await service
       .from('links')
       .select('id')
       .eq('slug', rawSlug)
@@ -30,10 +39,13 @@ export async function POST(req: NextRequest) {
 
   const slug = rawSlug || generateSlug()
 
-  const { data: sessionData } = await supabase.auth.getUser()
+  // Identify current user (optional — anon users get user_id = null)
+  const anonClient = createClient()
+  const { data: sessionData } = await anonClient.auth.getUser()
   const userId = sessionData?.user?.id ?? null
 
-  const { data, error } = await supabase
+  // Use service role to bypass RLS — allows both anon and authenticated inserts
+  const { data, error } = await service
     .from('links')
     .insert({ slug, destination_url: originalUrl, user_id: userId })
     .select()
