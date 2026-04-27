@@ -319,6 +319,17 @@ In `.env.local` it is stored under BOTH `NEXT_PUBLIC_SUPABASE_ANON_KEY` and `NEX
 - ✅ Built `src/app/api/admin/blocklist/route.ts` — GET/POST/DELETE, verifies admin email, service role key
 - ✅ Committed and pushed (commits `907c9d1`, `3accf5c`)
 
+### Session 12 — Landing Page Polish (React perf + a11y + UX fixes)
+- ✅ Moved `Logo`, `QRIcon`, `T` outside `J2zLanding` component (eliminates per-render recreation)
+- ✅ Added `IcoDownload` + `BioAvatarIcon` inline SVG components — replaced `⬇` and `🚀` emojis
+- ✅ Removed dead footer links (`/about`, `/blog`) — pages don't exist
+- ✅ Removed Apple OAuth button from signup prompt (Apple Developer account not set up)
+- ✅ Made result short URL clickable `<a href target="_blank">` instead of plain text
+- ✅ Fixed touch targets: `lang-btn`, `btn-signin`, `btn-signup` all ≥44px via `min-height + display:inline-flex`
+- ✅ Added `aria-label` to all URL inputs; `type="url"` on URL fields
+- ✅ Marked decorative elements `aria-hidden="true"`; signup prompt `role="dialog" aria-modal="true"`
+- ✅ Committed and pushed (commit `30348c5`)
+
 ---
 
 ## What's Next (Pending Work)
