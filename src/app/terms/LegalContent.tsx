@@ -22,7 +22,7 @@ const Logo = ({ s = 30 }: { s?: number }) => (
 )
 
 const TERMS_EN: LegalSection[] = [
-  { h: '1. Acceptance of Terms', p: 'By accessing or using J2z.com (\'the Service\'), you agree to be bound by these Terms of Service. If you do not agree, do not use the Service. The Service is operated by [OPERATOR NAME] (\'we\', \'us\', \'our\') as an individual sole proprietor.' },
+  { h: '1. Acceptance of Terms', p: 'By accessing or using J2z.com (\'the Service\'), you agree to be bound by these Terms of Service. If you do not agree, do not use the Service. The Service is operated by Faisal (\'we\', \'us\', \'our\') as an individual sole proprietor.' },
   { h: '2. Description of Service', p: 'J2z provides URL shortening, QR code generation, and bio-link page services. We may modify, suspend, or discontinue any part of the Service at any time without notice.' },
   { h: '3. Account Registration', p: 'Some features require an account. You agree to provide accurate information and keep it updated. You are responsible for maintaining the confidentiality of your credentials and for all activities under your account. You must be at least 13 years old to use the Service.' },
   { h: '4. Acceptable Use', p: 'You agree NOT to use the Service to create, share, or redirect to content that is:', list: [
@@ -45,12 +45,12 @@ const TERMS_EN: LegalSection[] = [
   { h: '10. Indemnification', p: 'You agree to indemnify and hold us harmless from any claims, damages, or expenses arising from your use of the Service, your content, or your violation of these Terms.' },
   { h: '11. Termination', p: 'You may stop using the Service at any time by deleting your account. We may suspend or terminate your access at any time, with or without cause or notice. Upon termination, your data may be deleted.' },
   { h: '12. Changes to Terms', p: 'We may update these Terms from time to time. Material changes will be communicated via email or the Service. Continued use after changes means you accept them.' },
-  { h: '13. Governing Law', p: 'These Terms are governed by the laws of [JURISDICTION]. Any disputes shall be resolved in the competent courts of [JURISDICTION].' },
+  { h: '13. Governing Law', p: 'These Terms are governed by the laws of Saudi Arabia. Any disputes shall be resolved in the competent courts of Saudi Arabia.' },
   { h: '14. Contact', p: 'For questions about these Terms, contact us at: legal@j2z.com' },
 ]
 
 const TERMS_AR: LegalSection[] = [
-  { h: '١. قبول الشروط', p: 'بوصولك إلى J2z.com أو استخدامك له («الخدمة»)، فإنك توافق على الالتزام بشروط الاستخدام هذه. إذا كنت لا توافق، فلا تستخدم الخدمة. تُدار الخدمة بواسطة [اسم المشغّل] («نحن»، «لنا») كمالك فرد.' },
+  { h: '١. قبول الشروط', p: 'بوصولك إلى J2z.com أو استخدامك له («الخدمة»)، فإنك توافق على الالتزام بشروط الاستخدام هذه. إذا كنت لا توافق، فلا تستخدم الخدمة. تُدار الخدمة بواسطة فيصل («نحن»، «لنا») كمالك فرد.' },
   { h: '٢. وصف الخدمة', p: 'يوفر J2z خدمات تقصير الروابط وتوليد أكواد QR وصفحات البايو. يحق لنا تعديل أو تعليق أو إيقاف أي جزء من الخدمة في أي وقت دون إشعار.' },
   { h: '٣. تسجيل الحساب', p: 'تتطلب بعض الميزات وجود حساب. أنت توافق على تقديم معلومات دقيقة وتحديثها. أنت مسؤول عن الحفاظ على سرية بيانات الدخول وعن جميع الأنشطة التي تتم من حسابك. يجب أن يكون عمرك ١٣ سنة على الأقل لاستخدام الخدمة.' },
   { h: '٤. الاستخدام المقبول', p: 'أنت توافق على عدم استخدام الخدمة لإنشاء أو مشاركة أو إعادة توجيه لمحتوى:', list: [
@@ -73,7 +73,7 @@ const TERMS_AR: LegalSection[] = [
   { h: '١٠. التعويض', p: 'أنت توافق على تعويضنا وإبقائنا في مأمن من أي مطالبات أو أضرار أو مصاريف ناشئة عن استخدامك للخدمة، أو محتواك، أو انتهاكك لهذه الشروط.' },
   { h: '١١. الإنهاء', p: 'يحق لك التوقف عن استخدام الخدمة في أي وقت بحذف حسابك. ويحق لنا تعليق أو إنهاء وصولك في أي وقت، بسبب أو بدون سبب أو إشعار. عند الإنهاء، قد تُحذف بياناتك.' },
   { h: '١٢. تغييرات الشروط', p: 'قد نقوم بتحديث هذه الشروط من وقت لآخر. سنُبلّغ عن التغييرات الجوهرية عبر البريد الإلكتروني أو الخدمة. استمرار استخدامك بعد التغييرات يعني قبولك لها.' },
-  { h: '١٣. القانون المطبّق', p: 'تخضع هذه الشروط لقوانين [الجهة القضائية]. تُحلّ أي نزاعات في المحاكم المختصة في [الجهة القضائية].' },
+  { h: '١٣. القانون المطبّق', p: 'تخضع هذه الشروط لقوانين المملكة العربية السعودية. تُحلّ أي نزاعات في المحاكم المختصة في المملكة العربية السعودية.' },
   { h: '١٤. التواصل', p: 'للاستفسار عن هذه الشروط، تواصل معنا على: legal@j2z.com' },
 ]
 
@@ -147,7 +147,7 @@ export default function LegalContent({ defaultTab = 'terms' }: { defaultTab?: Ta
 
   return (
     <>
-      <style>{css}</style>
+      <style dangerouslySetInnerHTML={{__html: css}} suppressHydrationWarning/>
       <div dir={dir}>
         <nav className="nav">
           <a className="logo-row" href="/">
