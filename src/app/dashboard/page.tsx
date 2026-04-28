@@ -787,6 +787,9 @@ body { font-family: 'Space Grotesk', 'Tajawal', sans-serif; -webkit-font-smoothi
 .theme-btn:hover { background:var(--hover); border-color:#D45A3F; }
 .tool-btn { padding:12px 22px; background:#E8765C; color:white; border:none; border-radius:10px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; transition:all .15s; white-space:nowrap; touch-action:manipulation; display:inline-flex; align-items:center; gap:6px; }
 .save-btn { padding:11px 22px; background:#E8765C; color:white; border:none; border-radius:10px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; align-self:flex-start; transition:all .15s; touch-action:manipulation; }
+.go-btn:active,.save-btn:active,.bio-edit:active { transform:scale(0.97) translateY(0) !important; transition-duration:0.05s !important; }
+.btn-s:active,.icon-btn:active,.theme-btn:active,.avi-btn:active { transform:scale(0.95) !important; transition-duration:0.05s !important; }
+button:focus-visible,a:focus-visible { outline:2px solid #D45A3F; outline-offset:2px; border-radius:4px; }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
 .skel-wrap { display:flex; flex-direction:column; min-height:100vh; background:#FBFAF7; align-items:center; justify-content:center; gap:16px; }
 .skel-logo { animation: skelPulse 1.4s ease-in-out infinite; }

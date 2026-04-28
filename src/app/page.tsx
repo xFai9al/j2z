@@ -369,6 +369,9 @@ body{background:var(--paper);color:var(--ink);font-family:'Space Grotesk','Tajaw
 .prompt-close{margin-top:10px;background:none;border:none;color:var(--ink-mute);font-size:13px;cursor:pointer;font-family:inherit;text-decoration:underline;min-height:44px;padding:0 8px;}
 .prompt-close:hover{color:var(--ink);}
 button,a{touch-action:manipulation;}
+.tool-btn:active,.bio-cta-btn:active,.cta-btn:active,.btn-signup:active,.qr-dl-btn:active{transform:scale(0.97) translateY(0)!important;transition-duration:0.05s!important;}
+.tool-copy-btn:active,.btn-s:active,.prompt-btn:active{transform:scale(0.97)!important;transition-duration:0.05s!important;}
+button:focus-visible,a:focus-visible{outline:2px solid var(--coral);outline-offset:2px;border-radius:4px;}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:0.01ms!important;transition-duration:0.01ms!important;}}
 .hero-demo-wrap{max-width:580px;margin:18px auto 0;}
 .hero-demo{display:flex;align-items:center;gap:10px;background:white;border:1.5px solid var(--border);border-radius:12px;padding:11px 16px;box-shadow:var(--shadow-sm);overflow:hidden;}
