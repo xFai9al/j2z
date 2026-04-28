@@ -52,6 +52,13 @@ const IcoDownload = ({ s = 14, c = 'currentColor' }: { s?: number; c?: string })
   </svg>
 )
 
+const IcoSpinner = ({ s = 14 }: { s?: number }) => (
+  <svg viewBox="0 0 20 20" width={s} height={s} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+    <path d="M10 2a8 8 0 1 0 8 8" opacity=".25"/>
+    <path d="M10 2a8 8 0 0 1 8 8" style={{animation:'spin .7s linear infinite',transformOrigin:'10px 10px'}}/>
+  </svg>
+)
+
 const BioAvatarIcon = () => (
   <svg viewBox="0 0 24 24" width={28} height={28} fill="none" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
     <circle cx="12" cy="8" r="3.5"/>
@@ -148,6 +155,7 @@ export default function J2zLanding() {
   const [qrInput, setQrInput] = useState('')
   const [qrResult, setQrResult] = useState<string | null>(null)
   const [qrUsed, setQrUsed] = useState(false)
+  const [qrLoading, setQrLoading] = useState(false)
   const [showSignupPrompt, setShowSignupPrompt] = useState(false)
   const qrCanvasRef = useRef<HTMLCanvasElement>(null)
   const dir = lang === 'ar' ? 'rtl' : 'ltr'
@@ -201,6 +209,7 @@ export default function J2zLanding() {
     const v = qrInput.trim()
     if (!v) return
     if (qrUsed) { setShowSignupPrompt(true); return }
+    setQrLoading(true)
     try {
       const res = await fetch('/api/shorten', {
         method: 'POST',
@@ -210,6 +219,7 @@ export default function J2zLanding() {
       const data = await res.json()
       if (res.ok) { setQrResult(data.short_url); setQrUsed(true) }
     } catch { /* ignore */ }
+    finally { setQrLoading(false) }
   }
 
   const downloadQR = () => {
@@ -269,6 +279,7 @@ body{background:var(--paper);color:var(--ink);font-family:'Space Grotesk','Tajaw
 .consent a{color:var(--coral-deep);text-decoration:underline;cursor:pointer;font-weight:500;}.consent a:hover{color:var(--coral);}
 .tool-result{margin-top:12px;padding:16px 18px;background:linear-gradient(135deg,var(--sage-soft),var(--coral-soft));border:1px solid var(--sage);border-radius:12px;animation:slideIn .3s ease;}
 @keyframes slideIn{from{opacity:0;transform:translateY(-6px);}to{opacity:1;transform:translateY(0);}}
+@keyframes spin{to{transform:rotate(360deg);}}
 .tool-result-label{font-size:10.5px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:1.2px;font-weight:700;margin-bottom:6px;}
 .tool-result-row{display:flex;align-items:center;gap:12px;justify-content:space-between;flex-wrap:wrap;}
 .tool-result-url{font-family:monospace;font-size:17px;font-weight:700;color:var(--coral-deep);text-decoration:none;}
@@ -400,8 +411,8 @@ button,a{touch-action:manipulation;}
               <button className="lang-btn" onClick={() => setLang(lang === 'en' ? 'ar' : 'en')} aria-label="Switch language">
                 {lang === 'en' ? 'العربية' : 'English'}
               </button>
-              <button className="btn-signin" onClick={() => window.location.href = '/auth'}>{t.nav_signin}</button>
-              <button className="btn-signup" onClick={() => window.location.href = '/auth'}>{t.nav_signup}</button>
+              <a className="btn-signin" href="/auth">{t.nav_signin}</a>
+              <a className="btn-signup" href="/auth">{t.nav_signup}</a>
             </div>
           </div>
         </nav>
@@ -436,8 +447,8 @@ button,a{touch-action:manipulation;}
                     aria-label="Custom path"
                   />
                 </div>
-                <button className="tool-btn" onClick={shorten} disabled={shortenLoading}>
-                  {shortenLoading ? '...' : `${t.tool_btn} →`}
+                <button className="tool-btn" onClick={shorten} disabled={shortenLoading} style={{display:'inline-flex',alignItems:'center',gap:6}}>
+                  {shortenLoading ? <><IcoSpinner s={14}/></> : `${t.tool_btn} →`}
                 </button>
               </div>
               {shortenError && <div className="tool-error" role="alert">{shortenError}</div>}
@@ -514,10 +525,8 @@ button,a{touch-action:manipulation;}
                   dir="ltr"
                   aria-label={t.qr_placeholder}
                 />
-                <button className="tool-btn" onClick={generateQR}>
-                  <span style={{display:'inline-flex',alignItems:'center',gap:6}}>
-                    <QRIcon s={14} color="white"/> {t.qr_btn}
-                  </span>
+                <button className="tool-btn" onClick={generateQR} disabled={qrLoading} style={{display:'inline-flex',alignItems:'center',gap:6}}>
+                  {qrLoading ? <IcoSpinner s={14}/> : <><QRIcon s={14} color="white"/> {t.qr_btn}</>}
                 </button>
               </div>
               {qrResult && (

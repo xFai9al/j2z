@@ -73,6 +73,13 @@ const VerifyMailIcon = () => (
   </svg>
 )
 
+const IcoSpinner = ({ s = 16 }: { s?: number }) => (
+  <svg viewBox="0 0 20 20" width={s} height={s} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+    <path d="M10 2a8 8 0 1 0 8 8" opacity=".3"/>
+    <path d="M10 2a8 8 0 0 1 8 8" style={{animation:'spin .7s linear infinite',transformOrigin:'10px 10px'}}/>
+  </svg>
+)
+
 const EyeIcon = ({ open }: { open: boolean }) => open ? (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
@@ -290,6 +297,7 @@ body{background:var(--paper);color:var(--ink);font-family:'Space Grotesk','Tajaw
 .right-tagline{margin-top:48px;padding-top:24px;border-top:1px solid rgba(255,255,255,.1);font-family:'Cal Sans','Tajawal',sans-serif;font-size:18px;color:rgba(255,255,255,.5);font-style:italic;}
 .right-tagline strong{color:var(--coral-light);font-style:normal;}
 button,a{touch-action:manipulation;}
+@keyframes spin{to{transform:rotate(360deg);}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:0.01ms!important;transition-duration:0.01ms!important;}}
 `
 
@@ -341,7 +349,7 @@ button,a{touch-action:manipulation;}
           {mode === 'email-signup' && (
             <div className="form-area" key="email-signup">
               <button className="back-to-options" onClick={() => setMode('signup')}>
-                {lang === 'en' ? '← All sign up options' : '← كل خيارات التسجيل'}
+                {lang === 'en' ? '← All sign up options' : 'كل خيارات التسجيل →'}
               </button>
               <h1 className="form-headline">{t.email_signup_headline}</h1>
               <div className="field-group">
@@ -359,8 +367,8 @@ button,a{touch-action:manipulation;}
                   <button className="pass-eye" onClick={() => setShowPass(!showPass)} aria-label={showPass ? 'Hide password' : 'Show password'}><EyeIcon open={showPass}/></button>
                 </div>
               </div>
-              <button className="submit-btn" onClick={handleEmailSignup} disabled={!email.trim() || !password.trim() || loading === 'email'}>
-                {loading === 'email' ? '...' : t.create_btn}
+              <button className="submit-btn" onClick={handleEmailSignup} disabled={!email.trim() || !password.trim() || loading === 'email'} style={{display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>
+                {loading === 'email' ? <><IcoSpinner s={16}/> {lang === 'en' ? 'Creating…' : 'جارٍ الإنشاء…'}</> : t.create_btn}
               </button>
               <div className="terms-text">{t.terms} <a href="/terms">{t.terms_link}</a></div>
               <div className="switch-mode">{t.already} <a className="switch-link" onClick={() => setMode('email-signin')}>{t.signin_link}</a></div>
@@ -370,7 +378,7 @@ button,a{touch-action:manipulation;}
           {mode === 'email-signin' && (
             <div className="form-area" key="email-signin">
               <button className="back-to-options" onClick={() => setMode('signin')}>
-                {lang === 'en' ? '← All sign in options' : '← كل خيارات الدخول'}
+                {lang === 'en' ? '← All sign in options' : 'كل خيارات الدخول →'}
               </button>
               <h1 className="form-headline">{t.email_signin_headline}</h1>
               <p className="form-sub">{t.email_signin_sub}</p>
@@ -384,10 +392,10 @@ button,a{touch-action:manipulation;}
                   <input className="field-input" type={showPass ? 'text' : 'password'} placeholder={t.pass_ph} value={password} onChange={e => setPassword(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleEmailSignin()} dir="ltr" autoComplete="current-password"/>
                   <button className="pass-eye" onClick={() => setShowPass(!showPass)} aria-label={showPass ? 'Hide password' : 'Show password'}><EyeIcon open={showPass}/></button>
                 </div>
-                <a className="forgot-link">{t.forgot}</a>
+                {/* forgot password flow not yet implemented */}
               </div>
-              <button className="submit-btn" onClick={handleEmailSignin} disabled={!email.trim() || !password.trim() || loading === 'email'}>
-                {loading === 'email' ? '...' : t.signin_btn}
+              <button className="submit-btn" onClick={handleEmailSignin} disabled={!email.trim() || !password.trim() || loading === 'email'} style={{display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>
+                {loading === 'email' ? <><IcoSpinner s={16}/> {lang === 'en' ? 'Signing in…' : 'جارٍ الدخول…'}</> : t.signin_btn}
               </button>
               <div className="switch-mode">{t.no_account} <a className="switch-link" onClick={() => setMode('email-signup')}>{t.signup_link}</a></div>
             </div>
