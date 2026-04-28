@@ -152,6 +152,17 @@ const IcoX = ({ s=16, c='currentColor' }: {s?:number;c?:string}) => (
     <path d="M4 4l12 12M16 4L4 16"/>
   </svg>
 )
+const IcoCheck = ({ s=13, c='currentColor' }: {s?:number;c?:string}) => (
+  <svg viewBox="0 0 20 20" width={s} height={s} fill="none" stroke={c} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M4 10l5 5 7-8"/>
+  </svg>
+)
+const IcoSpinner = ({ s=13, c='currentColor' }: {s?:number;c?:string}) => (
+  <svg viewBox="0 0 20 20" width={s} height={s} fill="none" stroke={c} strokeWidth="2" strokeLinecap="round">
+    <path d="M10 2a8 8 0 1 0 8 8" opacity=".3"/>
+    <path d="M10 2a8 8 0 0 1 8 8" style={{animation:'dashSpin .7s linear infinite',transformOrigin:'10px 10px'}}/>
+  </svg>
+)
 
 const TXT = {
   en: {
@@ -172,8 +183,8 @@ const TXT = {
     s_name:'Display name', s_email:'Email', s_lang:'Language',
     s_save:'Save changes', s_saved:'✓ Saved!', s_danger:'Danger zone',
     s_delete:'Delete account',
-    empty_links:'No links yet. Create one above ↑',
-    empty_qr:'No QR codes yet. Create one above ↑',
+    empty_links:'No links yet. Create one above.',
+    empty_qr:'No QR codes yet. Create one above.',
     new_dest:'New destination URL',
     save:'Save',
     bio_create_title:'Create your bio page',
@@ -208,8 +219,8 @@ const TXT = {
     s_name:'الاسم', s_email:'البريد الإلكتروني', s_lang:'اللغة',
     s_save:'حفظ التغييرات', s_saved:'✓ تم الحفظ!', s_danger:'منطقة الخطر',
     s_delete:'حذف الحساب',
-    empty_links:'لا توجد روابط بعد. أنشئ واحدة أعلاه ↑',
-    empty_qr:'لا توجد أكواد QR بعد. أنشئ واحداً أعلاه ↑',
+    empty_links:'لا توجد روابط بعد. أنشئ واحدة أعلاه.',
+    empty_qr:'لا توجد أكواد QR بعد. أنشئ واحداً أعلاه.',
     new_dest:'رابط الوجهة الجديد',
     save:'حفظ',
     bio_create_title:'أنشئ صفحتك الشخصية',
@@ -247,6 +258,8 @@ export default function Dashboard() {
   const [newSlug, setNewSlug] = useState('')
   const [qrUrl, setQrUrl] = useState('')
   const [copiedId, setCopiedId] = useState<string | null>(null)
+  const [linkAdding, setLinkAdding] = useState(false)
+  const [qrAdding, setQrAdding] = useState(false)
   const [editQrId, setEditQrId] = useState<string | null>(null)
   const [editDest, setEditDest] = useState('')
   const [saved, setSaved] = useState(false)
@@ -364,8 +377,9 @@ export default function Dashboard() {
 
   const addLink = async () => {
     const u = newUrl.trim()
-    if (!u) return
+    if (!u || linkAdding) return
     const slug = newSlug.trim() || Math.random().toString(36).slice(2, 6)
+    setLinkAdding(true)
     try {
       const res = await fetch('/api/shorten', {
         method: 'POST',
@@ -382,12 +396,15 @@ export default function Dashboard() {
       setLinks(p => [{ id: String(Date.now()), slug, url: u, clicks: 0, created: new Date().toISOString().slice(0, 10) }, ...p])
       setNewUrl('')
       setNewSlug('')
+    } finally {
+      setLinkAdding(false)
     }
   }
 
   const addQR = async () => {
     const u = qrUrl.trim()
-    if (!u) return
+    if (!u || qrAdding) return
+    setQrAdding(true)
     setQrUrl('')
     try {
       const res = await fetch('/api/qr', {
@@ -405,6 +422,7 @@ export default function Dashboard() {
         }, 80)
       }
     } catch {}
+    finally { setQrAdding(false) }
   }
 
   const deleteLink = async (id: string) => {
@@ -787,6 +805,7 @@ body { font-family: 'Space Grotesk', 'Tajawal', sans-serif; -webkit-font-smoothi
 .theme-btn:hover { background:var(--hover); border-color:#D45A3F; }
 .tool-btn { padding:12px 22px; background:#E8765C; color:white; border:none; border-radius:10px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; transition:all .15s; white-space:nowrap; touch-action:manipulation; display:inline-flex; align-items:center; gap:6px; }
 .save-btn { padding:11px 22px; background:#E8765C; color:white; border:none; border-radius:10px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; align-self:flex-start; transition:all .15s; touch-action:manipulation; }
+@keyframes dashSpin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
 .skel-wrap { display:flex; flex-direction:column; min-height:100vh; background:#FBFAF7; align-items:center; justify-content:center; gap:16px; }
 .skel-logo { animation: skelPulse 1.4s ease-in-out infinite; }
@@ -881,10 +900,10 @@ body { font-family: 'Space Grotesk', 'Tajawal', sans-serif; -webkit-font-smoothi
               </div>
               <div className="stat-grid">
                 {[
-                  { lbl:t.total_clicks, val:totalClicks.toLocaleString(), cls:'c-coral', ico:'cursor', bg:'bg-coral', delta:<><b>+18%</b> {t.vs_last}</>, accent:'accent-coral' },
-                  { lbl:t.total_links,  val:links.length,                 cls:'c-sage',  ico:'link',   bg:'bg-sage',  delta:`${t.this_week}: +2`,          accent:'accent-sage' },
-                  { lbl:t.total_qr,     val:qrs.length,                   cls:'c-butter', ico:'qr',   bg:'bg-butter', delta:`${t.this_week}: +1`,          accent:'accent-butter' },
-                  { lbl:t.total_scans,  val:totalScans.toLocaleString(),   cls:'',        ico:'radio',  bg:'bg-warm',  delta:<><b>+24%</b> {t.vs_last}</>, accent:'accent-warm' },
+                  { lbl:t.total_clicks, val:totalClicks.toLocaleString(), cls:'c-coral', ico:'cursor', bg:'bg-coral', delta:analyticsWeekTotal > 0 ? `${analyticsWeekTotal} ${t.this_week}` : null, accent:'accent-coral' },
+                  { lbl:t.total_links,  val:links.length,                 cls:'c-sage',  ico:'link',   bg:'bg-sage',  delta:null, accent:'accent-sage' },
+                  { lbl:t.total_qr,     val:qrs.length,                   cls:'c-butter', ico:'qr',   bg:'bg-butter', delta:null, accent:'accent-butter' },
+                  { lbl:t.total_scans,  val:totalScans.toLocaleString(),   cls:'',        ico:'radio',  bg:'bg-warm',  delta:null, accent:'accent-warm' },
                 ].map((s, i) => (
                   <div key={i} className={`stat-card ${s.accent}`}>
                     <div className="stat-top">
@@ -962,7 +981,9 @@ body { font-family: 'Space Grotesk', 'Tajawal', sans-serif; -webkit-font-smoothi
                   <span className="slug-pre">j2z.com/</span>
                   <input className="slug-in" placeholder={t.custom_ph} value={newSlug} onChange={e => setNewSlug(e.target.value.replace(/\s/g, ''))} dir="ltr"/>
                 </div>
-                <button className="go-btn" onClick={addLink} disabled={!newUrl.trim()}>{t.shorten}</button>
+                <button className="go-btn" onClick={addLink} disabled={!newUrl.trim() || linkAdding} style={{display:'inline-flex',alignItems:'center',gap:6}}>
+                  {linkAdding ? <><IcoSpinner s={13} c="white"/> {lang === 'en' ? 'Adding…' : 'جارٍ…'}</> : t.shorten}
+                </button>
               </div>
               <div className="card">
                 {links.length === 0
@@ -991,8 +1012,8 @@ body { font-family: 'Space Grotesk', 'Tajawal', sans-serif; -webkit-font-smoothi
               <div className="pg-head"><h1 className="pg-title">{t.qr}</h1></div>
               <div className="tool-row">
                 <input className="t-input" placeholder={t.qr_ph} value={qrUrl} onChange={e => setQrUrl(e.target.value)} onKeyDown={e => e.key === 'Enter' && addQR()} dir="ltr"/>
-                <button className="go-btn" onClick={addQR} disabled={!qrUrl.trim()}>
-                  <QRIcon s={14} color="white"/> {t.generate}
+                <button className="go-btn" onClick={addQR} disabled={!qrUrl.trim() || qrAdding} style={{display:'inline-flex',alignItems:'center',gap:6}}>
+                  {qrAdding ? <><IcoSpinner s={13} c="white"/> {lang === 'en' ? 'Generating…' : 'جارٍ…'}</> : <><QRIcon s={14} color="white"/> {t.generate}</>}
                 </button>
               </div>
               {qrs.length === 0
@@ -1019,7 +1040,7 @@ body { font-family: 'Space Grotesk', 'Tajawal', sans-serif; -webkit-font-smoothi
                           <div className="edit-lbl">{t.new_dest}</div>
                           <div className="edit-row">
                             <input className="edit-in" value={editDest} onChange={e => setEditDest(e.target.value)} onKeyDown={e => e.key === 'Enter' && saveQrDest(q.id)} dir="ltr"/>
-                            <button className="sv-btn" onClick={() => saveQrDest(q.id)} aria-label="Save">✓</button>
+                            <button className="sv-btn" onClick={() => saveQrDest(q.id)} aria-label="Save" style={{display:'inline-flex',alignItems:'center',justifyContent:'center'}}><IcoCheck s={14} c="white"/></button>
                           </div>
                         </div>
                       )}
