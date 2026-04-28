@@ -6,7 +6,7 @@ export async function POST(req: NextRequest) {
   const { data: { user } } = await sb.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { title, url } = await req.json()
+  const { title, url, platform } = await req.json()
   if (!title?.trim() || !url?.trim()) {
     return NextResponse.json({ error: 'Title and URL required' }, { status: 400 })
   }
@@ -24,7 +24,13 @@ export async function POST(req: NextRequest) {
 
   const { data, error } = await sb
     .from('bio_links')
-    .insert({ bio_page_id: page.id, title: title.trim(), url: url.trim(), sort_order: Date.now() })
+    .insert({
+      bio_page_id: page.id,
+      title: title.trim(),
+      url: url.trim(),
+      sort_order: Date.now(),
+      platform: platform || null,
+    })
     .select()
     .single()
 

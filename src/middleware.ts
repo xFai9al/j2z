@@ -1,7 +1,11 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextRequest, NextResponse } from 'next/server'
 
-const RESERVED = new Set(['auth', 'dashboard', 'admin', 'terms', 'privacy', 'api', 'u', 'not-found'])
+const RESERVED = new Set([
+  'auth', 'dashboard', 'admin', 'terms', 'privacy', 'api', 'u',
+  'not-found', 'error', 'sitemap', 'robots', 'favicon', 'sw', 'manifest',
+  '_next', 'static', 'images',
+])
 
 function parseDevice(ua: string): string {
   if (/ipad/i.test(ua)) return 'tablet'
@@ -21,11 +25,38 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
   const segments = pathname.split('/').filter(Boolean)
 
-  // Handle short-link redirects: single-segment paths that are not reserved
+  // /u/[username] → permanent redirect to /[username]
+  if (segments.length === 2 && segments[0] === 'u') {
+    return NextResponse.redirect(new URL(`/${segments[1]}`, request.url), 301)
+  }
+
+  // Single-segment paths: resolve in order — bio page wins, then short links
   if (segments.length === 1 && !RESERVED.has(segments[0])) {
     const slug = segments[0]
     const sb = makeServiceClient()
 
+    // 1. Bio page check — if found, let Next.js render [username]/page.tsx
+    const { data: bio } = await sb
+      .from('bio_pages')
+      .select('id')
+      .eq('username', slug)
+      .eq('is_published', true)
+      .maybeSingle()
+
+    if (bio) {
+      // Track bio page view fire-and-forget
+      sb.rpc('track_click', {
+        p_resource_type: 'bio',
+        p_resource_id: bio.id,
+        p_country: request.headers.get('cf-ipcountry') ?? request.headers.get('x-vercel-ip-country') ?? null,
+        p_device_type: parseDevice(request.headers.get('user-agent') ?? ''),
+        p_referrer: request.headers.get('referer')?.slice(0, 500) ?? null,
+        p_user_agent: (request.headers.get('user-agent') ?? '').slice(0, 300),
+      }).then(() => {})
+      return NextResponse.next()
+    }
+
+    // 2. Short link check
     const ua = request.headers.get('user-agent') ?? ''
     const country =
       request.headers.get('cf-ipcountry') ??
@@ -43,7 +74,6 @@ export async function middleware(request: NextRequest) {
       .maybeSingle()
 
     if (link) {
-      // Try track_click (handles INSERT + counter atomically); fallback to direct INSERT
       sb.rpc('track_click', {
         p_resource_type: 'link',
         p_resource_id: link.id,
@@ -66,6 +96,7 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(link.destination_url)
     }
 
+    // 3. QR code check
     const { data: qr } = await sb
       .from('qr_codes')
       .select('id, destination_url')

@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 
+const RESERVED = new Set([
+  'auth', 'dashboard', 'admin', 'terms', 'privacy', 'api', 'u',
+  'not-found', 'error', 'sitemap', 'robots', 'favicon', 'sw', 'manifest',
+  '_next', 'static', 'images',
+])
+
 export async function GET() {
   const sb = await createClient()
   const { data: { user } } = await sb.auth.getUser()
@@ -8,7 +14,7 @@ export async function GET() {
 
   const { data } = await sb
     .from('bio_pages')
-    .select('*, bio_links(id, title, url, sort_order, is_active, icon)')
+    .select('*, bio_links(id, title, url, sort_order, is_active, platform)')
     .eq('user_id', user.id)
     .maybeSingle()
 
@@ -25,6 +31,10 @@ export async function POST(req: NextRequest) {
 
   if (!username || !/^[a-zA-Z0-9_-]{3,30}$/.test(username)) {
     return NextResponse.json({ error: 'Invalid username (3-30 chars, letters/numbers/_/-)' }, { status: 400 })
+  }
+
+  if (RESERVED.has(username.toLowerCase())) {
+    return NextResponse.json({ error: 'This username is reserved' }, { status: 400 })
   }
 
   const { data, error } = await sb
@@ -47,7 +57,11 @@ export async function PATCH(req: NextRequest) {
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const body = await req.json()
-  const { display_name, bio, is_published, accent_color, background_color, avatar_url } = body
+  const {
+    display_name, bio, is_published,
+    accent_color, background_color, avatar_url,
+    button_style, button_color, button_text_color, bg_image_url,
+  } = body
 
   const updates: Record<string, unknown> = { updated_at: new Date().toISOString() }
   if (display_name !== undefined) updates.display_name = display_name
@@ -56,6 +70,10 @@ export async function PATCH(req: NextRequest) {
   if (accent_color !== undefined) updates.accent_color = accent_color
   if (background_color !== undefined) updates.background_color = background_color
   if (avatar_url !== undefined) updates.avatar_url = avatar_url
+  if (button_style !== undefined) updates.button_style = button_style
+  if (button_color !== undefined) updates.button_color = button_color
+  if (button_text_color !== undefined) updates.button_text_color = button_text_color
+  if (bg_image_url !== undefined) updates.bg_image_url = bg_image_url
 
   const { data, error } = await sb
     .from('bio_pages')

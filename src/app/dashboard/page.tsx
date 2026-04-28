@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import type { User } from '@supabase/supabase-js'
 import QRCode from 'qrcode'
+import { PLATFORMS, PLATFORM_KEYS } from '@/lib/platforms'
 
 type Lang = 'en' | 'ar'
 type TabKey = 'overview' | 'links' | 'qr' | 'bio' | 'analytics' | 'settings'
@@ -23,8 +24,12 @@ interface QrItem {
   scans: number
   created: string
 }
-interface BioPage { id: string; username: string; display_name: string | null; bio: string | null; is_published: boolean; accent_color: string; background_color: string; avatar_url: string | null }
-interface BioLink { id: string; title: string; url: string; sort_order: number }
+interface BioPage {
+  id: string; username: string; display_name: string | null; bio: string | null
+  is_published: boolean; accent_color: string; background_color: string; avatar_url: string | null
+  button_style?: string; button_color?: string; button_text_color?: string; bg_image_url?: string | null
+}
+interface BioLink { id: string; title: string; url: string; sort_order: number; platform?: string | null }
 const DAYS = { en: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'], ar: ['إث','ثلا','أرب','خمي','جمع','سبت','أحد'] }
 
 const BIO_THEMES = [
@@ -38,6 +43,15 @@ const BIO_THEMES = [
 ]
 
 const BIO_AVATARS = ['', '🚀', '⚡', '🎯', '🌟', '🔥', '💎', '🎨', '🌊', '🦋', '🌙', '⭐']
+
+const BUTTON_STYLES = [
+  { id: 'glass',       en: 'Glass',    ar: 'زجاجي',   radius: '14px', bg: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.2)', color: '#fff' },
+  { id: 'fill',        en: 'Fill',     ar: 'ممتلئ',   radius: '14px', bg: 'ACCENT',                 border: 'none',                            color: '#fff' },
+  { id: 'outline',     en: 'Outline',  ar: 'حدود',    radius: '14px', bg: 'transparent',            border: '2px solid ACCENT',                color: 'ACCENT' },
+  { id: 'pill',        en: 'Pill',     ar: 'كبسولة',  radius: '100px',bg: 'ACCENT',                 border: 'none',                            color: '#fff' },
+  { id: 'pill-outline',en: 'Pill line',ar: 'كبسولة ح',radius: '100px',bg: 'transparent',            border: '2px solid ACCENT',                color: 'ACCENT' },
+  { id: 'soft',        en: 'Soft',     ar: 'ناعم',    radius: '14px', bg: 'rgba(255,255,255,0.18)', border: 'none',                            color: '#fff' },
+]
 
 type CountryRow = { code:string; en:string; ar:string; pct:number; flag:string }
 type DeviceRow  = { en:string; ar:string; pct:number; color:string }
@@ -272,8 +286,16 @@ export default function Dashboard() {
   const [bioAccent, setBioAccent] = useState('#E8765C')
   const [bioBg, setBioBg] = useState('#1A1612')
   const [bioAvatar, setBioAvatar] = useState<string>('')
+  const [bioButtonStyle, setBioButtonStyle] = useState('glass')
+  const [bioButtonColor, setBioButtonColor] = useState('')
+  const [bioButtonTextColor, setBioButtonTextColor] = useState('')
+  const [bioBgImage, setBioBgImage] = useState('')
+  const [newSocialPlatform, setNewSocialPlatform] = useState('')
+  const [newSocialUrl, setNewSocialUrl] = useState('')
+  const [socialAdding, setSocialAdding] = useState(false)
   const [editBioLinkTitle, setEditBioLinkTitle] = useState('')
   const [editBioLinkUrl, setEditBioLinkUrl] = useState('')
+  const [appearanceSaved, setAppearanceSaved] = useState(false)
   const qrRefs = useRef<Record<string, HTMLCanvasElement | null>>({})
   const t = TXT[lang]
   const dir = lang === 'ar' ? 'rtl' : 'ltr'
@@ -308,12 +330,26 @@ export default function Dashboard() {
     const res = await fetch('/api/bio')
     const data = await res.json()
     if (data.page) {
-      setBioPage({ id: data.page.id, username: data.page.username, display_name: data.page.display_name, bio: data.page.bio, is_published: data.page.is_published, accent_color: data.page.accent_color ?? '#E8765C', background_color: data.page.background_color ?? '#1A1612', avatar_url: data.page.avatar_url ?? null })
+      setBioPage({
+        id: data.page.id, username: data.page.username, display_name: data.page.display_name,
+        bio: data.page.bio, is_published: data.page.is_published,
+        accent_color: data.page.accent_color ?? '#E8765C',
+        background_color: data.page.background_color ?? '#1A1612',
+        avatar_url: data.page.avatar_url ?? null,
+        button_style: data.page.button_style ?? 'glass',
+        button_color: data.page.button_color ?? '',
+        button_text_color: data.page.button_text_color ?? '',
+        bg_image_url: data.page.bg_image_url ?? null,
+      })
       setBioLinks(((data.page.bio_links ?? []) as (BioLink & { is_active: boolean })[]).filter(l => l.is_active).sort((a, b) => a.sort_order - b.sort_order))
       setBioForm({ username: data.page.username, display_name: data.page.display_name ?? '', bio: data.page.bio ?? '' })
       setBioAccent(data.page.accent_color ?? '#E8765C')
       setBioBg(data.page.background_color ?? '#1A1612')
       setBioAvatar(data.page.avatar_url ?? '')
+      setBioButtonStyle(data.page.button_style ?? 'glass')
+      setBioButtonColor(data.page.button_color ?? '')
+      setBioButtonTextColor(data.page.button_text_color ?? '')
+      setBioBgImage(data.page.bg_image_url ?? '')
     }
     setBioLoaded(true)
   }, [])
@@ -524,6 +560,45 @@ export default function Dashboard() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ accent_color: accent, background_color: bg }),
     })
+  }
+
+  const saveBioAppearance = async (updates: { button_style?: string; button_color?: string; button_text_color?: string; bg_image_url?: string }) => {
+    if (updates.button_style !== undefined) { setBioButtonStyle(updates.button_style); setBioPage(p => p ? { ...p, button_style: updates.button_style } : p) }
+    if (updates.button_color !== undefined) { setBioButtonColor(updates.button_color); setBioPage(p => p ? { ...p, button_color: updates.button_color } : p) }
+    if (updates.button_text_color !== undefined) { setBioButtonTextColor(updates.button_text_color); setBioPage(p => p ? { ...p, button_text_color: updates.button_text_color } : p) }
+    if (updates.bg_image_url !== undefined) { setBioBgImage(updates.bg_image_url); setBioPage(p => p ? { ...p, bg_image_url: updates.bg_image_url } : p) }
+    await fetch('/api/bio', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updates),
+    })
+    setAppearanceSaved(true)
+    setTimeout(() => setAppearanceSaved(false), 2000)
+  }
+
+  const addSocialLink = async () => {
+    if (!newSocialPlatform || !newSocialUrl.trim()) return
+    const plat = PLATFORMS[newSocialPlatform]
+    if (!plat) return
+    const url = newSocialUrl.trim()
+    if (!/^https?:\/\/.+/.test(url)) return
+    setSocialAdding(true)
+    const tempId = `temp-${Date.now()}`
+    setBioLinks(p => [...p, { id: tempId, title: plat.name, url, sort_order: Date.now(), platform: newSocialPlatform }])
+    setNewSocialPlatform('')
+    setNewSocialUrl('')
+    const res = await fetch('/api/bio/links', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: plat.name, url, platform: newSocialPlatform }),
+    })
+    if (res.ok) {
+      const data = await res.json()
+      setBioLinks(p => p.map(l => l.id === tempId ? data.link : l))
+    } else {
+      setBioLinks(p => p.filter(l => l.id !== tempId))
+    }
+    setSocialAdding(false)
   }
 
   const saveBioAvatar = async (emoji: string) => {
@@ -1077,13 +1152,13 @@ button:focus-visible,a:focus-visible { outline:2px solid #D45A3F; outline-offset
                 <div className="bio-grid">
                   <div className="bio-left">
                     <div className="bio-url-row">
-                      <span className="bio-url-txt">j2z.com/u/{bioPage.username}</span>
+                      <span className="bio-url-txt">j2z.com/{bioPage.username}</span>
                       <div style={{display:'flex',gap:6}}>
                         <button className={`btn-s ${copiedId==='bio-link'?'ok':''}`}
-                          onClick={()=>{navigator.clipboard.writeText(`j2z.com/u/${bioPage.username}`);setCopiedId('bio-link');setTimeout(()=>setCopiedId(null),1800);}}>
+                          onClick={()=>{navigator.clipboard.writeText(`https://j2z.com/${bioPage.username}`);setCopiedId('bio-link');setTimeout(()=>setCopiedId(null),1800);}}>
                           {copiedId==='bio-link'?t.copied:t.copy}
                         </button>
-                        <a className="btn-s" href={`/u/${bioPage.username}`} target="_blank" rel="noreferrer">{t.bio_view}</a>
+                        <a className="btn-s" href={`/${bioPage.username}`} target="_blank" rel="noreferrer">{t.bio_view}</a>
                       </div>
                     </div>
 
@@ -1171,11 +1246,114 @@ button:focus-visible,a:focus-visible { outline:2px solid #D45A3F; outline-offset
                           </button>
                         ))}
                       </div>
+                      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginTop:14}}>
+                        <div>
+                          <div style={{fontSize:12,color:'var(--ink3)',marginBottom:5}}>{lang==='ar'?'لون التمييز':'Accent color'}</div>
+                          <div style={{display:'flex',gap:6,alignItems:'center'}}>
+                            <input type="color" value={bioAccent} style={{width:32,height:32,border:'none',borderRadius:6,cursor:'pointer',padding:2,background:'var(--surface)'}}
+                              onChange={e => setBioAccent(e.target.value)}
+                              onBlur={e => saveBioTheme(e.target.value, bioBg)}/>
+                            <input className="t-input" style={{flex:1,fontFamily:'monospace',fontSize:12}} dir="ltr" value={bioAccent}
+                              onChange={e => { setBioAccent(e.target.value); }}
+                              onBlur={e => saveBioTheme(e.target.value, bioBg)}/>
+                          </div>
+                        </div>
+                        <div>
+                          <div style={{fontSize:12,color:'var(--ink3)',marginBottom:5}}>{lang==='ar'?'لون الخلفية':'Background'}</div>
+                          <div style={{display:'flex',gap:6,alignItems:'center'}}>
+                            <input type="color" value={bioBg} style={{width:32,height:32,border:'none',borderRadius:6,cursor:'pointer',padding:2,background:'var(--surface)'}}
+                              onChange={e => setBioBg(e.target.value)}
+                              onBlur={e => saveBioTheme(bioAccent, e.target.value)}/>
+                            <input className="t-input" style={{flex:1,fontFamily:'monospace',fontSize:12}} dir="ltr" value={bioBg}
+                              onChange={e => setBioBg(e.target.value)}
+                              onBlur={e => saveBioTheme(bioAccent, e.target.value)}/>
+                          </div>
+                        </div>
+                      </div>
+                      <div style={{marginTop:12}}>
+                        <div style={{fontSize:12,color:'var(--ink3)',marginBottom:5}}>{lang==='ar'?'صورة الخلفية (URL)':'Background image URL (optional)'}</div>
+                        <div style={{display:'flex',gap:6}}>
+                          <input className="t-input" style={{flex:1,fontSize:12}} dir="ltr" type="url" placeholder="https://..." value={bioBgImage}
+                            onChange={e => setBioBgImage(e.target.value)}/>
+                          <button className="btn-s" onClick={() => saveBioAppearance({ bg_image_url: bioBgImage || null as unknown as string })}>
+                            {lang==='ar'?'حفظ':'Save'}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Button style */}
+                    <div className="card" style={{marginTop:0}}>
+                      <div className="card-hd">{lang==='ar'?'شكل الأزرار':'Button style'}</div>
+                      <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8,marginBottom:14}}>
+                        {BUTTON_STYLES.map(bs => {
+                          const bg = bs.bg === 'ACCENT' ? bioAccent : bs.bg === 'transparent' ? 'transparent' : bs.bg
+                          const bdr = bs.border.replace('ACCENT', bioAccent)
+                          const clr = bs.color === 'ACCENT' ? bioAccent : bs.color
+                          return (
+                            <button
+                              key={bs.id}
+                              onClick={() => saveBioAppearance({ button_style: bs.id })}
+                              style={{
+                                padding:'8px 0',fontSize:11,fontWeight:600,cursor:'pointer',
+                                borderRadius:8,border:bioButtonStyle===bs.id?`2px solid ${bioAccent}`:'2px solid var(--border)',
+                                background:'var(--surface)',color:'var(--ink)',
+                                transition:'all .15s',
+                              }}
+                              aria-pressed={bioButtonStyle===bs.id}
+                            >
+                              <div style={{margin:'0 auto 5px',width:40,height:16,borderRadius:bs.radius,background:bg,border:bdr,color:clr,display:'flex',alignItems:'center',justifyContent:'center',fontSize:7,fontWeight:700,overflow:'hidden'}}>
+                                {lang==='ar'?bs.ar:bs.en}
+                              </div>
+                              <div style={{fontSize:10,opacity:.7}}>{lang==='ar'?bs.ar:bs.en}</div>
+                            </button>
+                          )
+                        })}
+                      </div>
+                      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
+                        <div>
+                          <div style={{fontSize:12,color:'var(--ink3)',marginBottom:5}}>{lang==='ar'?'لون الزر':'Button color'}</div>
+                          <div style={{display:'flex',gap:6,alignItems:'center'}}>
+                            <input type="color" value={bioButtonColor||bioAccent} style={{width:32,height:32,border:'none',borderRadius:6,cursor:'pointer',padding:2,background:'var(--surface)'}}
+                              onChange={e => setBioButtonColor(e.target.value)}
+                              onBlur={e => saveBioAppearance({ button_color: e.target.value })}/>
+                            <input className="t-input" style={{flex:1,fontFamily:'monospace',fontSize:12}} dir="ltr" placeholder={bioAccent}
+                              value={bioButtonColor}
+                              onChange={e => setBioButtonColor(e.target.value)}
+                              onBlur={e => saveBioAppearance({ button_color: e.target.value })}/>
+                          </div>
+                        </div>
+                        <div>
+                          <div style={{fontSize:12,color:'var(--ink3)',marginBottom:5}}>{lang==='ar'?'لون النص':'Text color'}</div>
+                          <div style={{display:'flex',gap:6,alignItems:'center'}}>
+                            <input type="color" value={bioButtonTextColor||'#ffffff'} style={{width:32,height:32,border:'none',borderRadius:6,cursor:'pointer',padding:2,background:'var(--surface)'}}
+                              onChange={e => setBioButtonTextColor(e.target.value)}
+                              onBlur={e => saveBioAppearance({ button_text_color: e.target.value })}/>
+                            <input className="t-input" style={{flex:1,fontFamily:'monospace',fontSize:12}} dir="ltr" placeholder="#ffffff"
+                              value={bioButtonTextColor}
+                              onChange={e => setBioButtonTextColor(e.target.value)}
+                              onBlur={e => saveBioAppearance({ button_text_color: e.target.value })}/>
+                          </div>
+                        </div>
+                      </div>
+                      {appearanceSaved && <div style={{fontSize:12,color:'var(--sage)',marginTop:8}}>{lang==='ar'?'تم الحفظ ✓':'Saved ✓'}</div>}
                     </div>
 
                     {/* Avatar picker */}
                     <div className="card" style={{marginTop:0}}>
                       <div className="card-hd">{t.bio_avatar}</div>
+                      <div style={{marginBottom:10}}>
+                        <div style={{fontSize:12,color:'var(--ink3)',marginBottom:5}}>{lang==='ar'?'رابط الصورة (URL)':'Image URL (optional)'}</div>
+                        <div style={{display:'flex',gap:6}}>
+                          <input className="t-input" style={{flex:1,fontSize:12}} dir="ltr" type="url" placeholder="https://..."
+                            value={bioAvatar.startsWith('http') ? bioAvatar : ''}
+                            onChange={e => setBioAvatar(e.target.value)}/>
+                          <button className="btn-s" onClick={() => saveBioAvatar(bioAvatar.startsWith('http') ? bioAvatar : '')}>
+                            {lang==='ar'?'حفظ':'Save'}
+                          </button>
+                        </div>
+                      </div>
+                      <div style={{fontSize:12,color:'var(--ink3)',marginBottom:8}}>{lang==='ar'?'أو اختر رمز':'Or pick an emoji'}</div>
                       <div className="avatar-row">
                         {BIO_AVATARS.map((emoji, i) => (
                           <button
@@ -1190,23 +1368,102 @@ button:focus-visible,a:focus-visible { outline:2px solid #D45A3F; outline-offset
                         ))}
                       </div>
                     </div>
+
+                    {/* Social links */}
+                    <div className="card" style={{marginTop:0}}>
+                      <div className="card-hd">{lang==='ar'?'روابط التواصل الاجتماعي':'Social links'}</div>
+                      <div style={{display:'flex',flexWrap:'wrap',gap:6,marginBottom:12}}>
+                        {bioLinks.filter(l => l.platform && PLATFORMS[l.platform]).map(l => {
+                          const plat = PLATFORMS[l.platform!]
+                          return (
+                            <div key={l.id} style={{display:'flex',alignItems:'center',gap:4,padding:'4px 8px 4px 6px',borderRadius:20,border:'1px solid var(--border)',background:'var(--surface)',fontSize:12}}>
+                              <div style={{width:18,height:18,borderRadius:'50%',background:plat.color,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                                <svg viewBox="0 0 24 24" width={10} height={10} fill={plat.textColor}><path d={plat.path}/></svg>
+                              </div>
+                              <span style={{color:'var(--ink2)'}}>{plat.name}</span>
+                              <button style={{background:'none',border:'none',cursor:'pointer',color:'var(--ink3)',padding:'0 2px',fontSize:11,lineHeight:1}} onClick={() => deleteBioLink(l.id)} aria-label={`Remove ${plat.name}`}>✕</button>
+                            </div>
+                          )
+                        })}
+                        {bioLinks.filter(l => l.platform && PLATFORMS[l.platform]).length === 0 && (
+                          <div style={{fontSize:13,color:'var(--ink3)'}}>{lang==='ar'?'لا توجد روابط اجتماعية بعد':'No social links yet'}</div>
+                        )}
+                      </div>
+                      <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+                        <select className="t-input" style={{flex:1,minWidth:120,fontSize:13}} value={newSocialPlatform} onChange={e => setNewSocialPlatform(e.target.value)}>
+                          <option value="">{lang==='ar'?'اختر المنصة':'Select platform'}</option>
+                          {PLATFORM_KEYS.map(k => <option key={k} value={k}>{PLATFORMS[k].name}</option>)}
+                        </select>
+                        <input className="t-input" style={{flex:2,minWidth:140,fontSize:13}} dir="ltr" type="url" placeholder="https://instagram.com/yourname"
+                          value={newSocialUrl} onChange={e => setNewSocialUrl(e.target.value)}/>
+                        <button className="tool-btn" style={{padding:'10px 14px',fontSize:13,whiteSpace:'nowrap'}} onClick={addSocialLink}
+                          disabled={socialAdding||!newSocialPlatform||!newSocialUrl.trim()}>
+                          {lang==='ar'?'إضافة':'Add'}
+                        </button>
+                      </div>
+                    </div>
                   </div>
 
-                  <div className="bio-mock" style={{background: `linear-gradient(145deg, ${bioBg} 0%, ${bioBg}cc 100%)`}}>
+                  <div className="bio-mock" style={{
+                    background: bioBgImage
+                      ? `url('${bioBgImage}') center/cover, ${bioBg}`
+                      : `linear-gradient(145deg, ${bioBg} 0%, ${bioBg}cc 100%)`,
+                  }}>
                     <div className="bio-mock-glow" style={{position:'absolute',top:-60,left:-60,width:300,height:300,background:`radial-gradient(circle, ${bioAccent}30, transparent 60%)`,pointerEvents:'none'}}/>
-                    <div className="bio-avi" style={{background:`linear-gradient(135deg, ${bioAccent}, #E8C66B)`,fontSize: bioAvatar ? 26 : 22}}>
-                      {bioAvatar || (bioForm.display_name || displayName)[0]?.toUpperCase() || '?'}
+                    <div className="bio-avi" style={{
+                      background: bioAvatar.startsWith('http') ? 'transparent' : `linear-gradient(135deg, ${bioAccent}, #E8C66B)`,
+                      fontSize: (bioAvatar && !bioAvatar.startsWith('http')) ? 26 : 22,
+                      overflow: 'hidden',
+                    }}>
+                      {bioAvatar.startsWith('http')
+                        ? <img src={bioAvatar} alt="" style={{width:'100%',height:'100%',objectFit:'cover',borderRadius:'50%'}}/>
+                        : bioAvatar || (bioForm.display_name || displayName)[0]?.toUpperCase() || '?'
+                      }
                     </div>
                     <div className="bio-nm">{bioForm.display_name || displayName}</div>
                     <div className="bio-dc">{bioForm.bio || (lang==='en'?'Creator · Designer · Builder':'مبدع · مصمم · مطور')}</div>
+                    {/* Social icons in preview */}
+                    {bioLinks.filter(l => l.platform && PLATFORMS[l.platform]).length > 0 && (
+                      <div style={{display:'flex',flexWrap:'wrap',justifyContent:'center',gap:6,marginBottom:10,position:'relative',zIndex:1}}>
+                        {bioLinks.filter(l => l.platform && PLATFORMS[l.platform]).map(l => {
+                          const plat = PLATFORMS[l.platform!]
+                          return (
+                            <div key={l.id} style={{width:26,height:26,borderRadius:'50%',background:plat.color,display:'flex',alignItems:'center',justifyContent:'center'}}>
+                              <svg viewBox="0 0 24 24" width={13} height={13} fill={plat.textColor}><path d={plat.path}/></svg>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    )}
                     <div className="bio-links">
-                      {bioLinks.length === 0
-                        ? (lang==='en'?['My Project','Instagram','Contact Me']:['مشروعي','إنستغرام','تواصل معي']).map((l,i)=><div key={i} className="bio-lbtn" style={{opacity:.4}}>{l}</div>)
-                        : bioLinks.map(l=><div key={l.id} className="bio-lbtn">{l.title}</div>)
+                      {bioLinks.filter(l => !l.platform).length === 0
+                        ? (lang==='en'?['My Project','My Website','Contact Me']:['مشروعي','موقعي','تواصل معي']).map((l,i) => {
+                            const previewBg = (() => {
+                              const bs = BUTTON_STYLES.find(s => s.id === bioButtonStyle)
+                              if (!bs) return 'rgba(255,255,255,.08)'
+                              const bg = bs.bg === 'ACCENT' ? bioAccent : bs.bg === 'transparent' ? 'transparent' : bs.bg
+                              return bg
+                            })()
+                            const previewBdr = (() => {
+                              const bs = BUTTON_STYLES.find(s => s.id === bioButtonStyle)
+                              if (!bs) return '1px solid rgba(255,255,255,.15)'
+                              return bs.border.replace('ACCENT', bioAccent)
+                            })()
+                            const previewRadius = BUTTON_STYLES.find(s => s.id === bioButtonStyle)?.radius ?? '9px'
+                            return <div key={i} className="bio-lbtn" style={{opacity:.4,background:previewBg,border:previewBdr,borderRadius:previewRadius}}>{l}</div>
+                          })
+                        : bioLinks.filter(l => !l.platform).map(l => {
+                            const bs = BUTTON_STYLES.find(s => s.id === bioButtonStyle)
+                            const bg = bs ? (bs.bg === 'ACCENT' ? bioButtonColor||bioAccent : bs.bg === 'transparent' ? 'transparent' : bs.bg) : 'rgba(255,255,255,.08)'
+                            const bdr = bs ? bs.border.replace('ACCENT', bioButtonColor||bioAccent) : '1px solid rgba(255,255,255,.15)'
+                            const radius = bs?.radius ?? '9px'
+                            const clr = bs ? (bs.color === 'ACCENT' ? bioButtonColor||bioAccent : bs.color) : 'white'
+                            return <div key={l.id} className="bio-lbtn" style={{background:bg,border:bdr,borderRadius:radius,color:bioButtonTextColor||clr}}>{l.title}</div>
+                          })
                       }
                     </div>
                     <div className="bio-url-tag" style={{marginTop:14,fontFamily:'monospace',fontSize:'10.5px',color:'rgba(255,255,255,.5)'}}>
-                      j2z.com/u/<strong style={{color: bioAccent,fontWeight:600}}>{bioPage.username}</strong>
+                      j2z.com/<strong style={{color: bioAccent,fontWeight:600}}>{bioPage.username}</strong>
                     </div>
                   </div>
                 </div>

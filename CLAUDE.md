@@ -319,6 +319,30 @@ In `.env.local` it is stored under BOTH `NEXT_PUBLIC_SUPABASE_ANON_KEY` and `NEX
 - ✅ Built `src/app/api/admin/blocklist/route.ts` — GET/POST/DELETE, verifies admin email, service role key
 - ✅ Committed and pushed (commits `907c9d1`, `3accf5c`)
 
+### Session 13 — Bio Page Linktree Upgrade + Redesign Fixes
+- ✅ Fixed `src/app/globals.css` body style override (removed Tailwind slate overrides that fought inline CSS)
+- ✅ Fixed `src/app/layout.tsx` — removed dead Geist font loading, added og:image/Twitter card meta
+- ✅ Fixed `src/app/terms/LegalContent.tsx` hydration error (`dangerouslySetInnerHTML`), replaced `[OPERATOR NAME]` → Faisal
+- ✅ Added `linkNotFound` toast on landing page when `?notfound=1` query param is present
+- ✅ Added `.env.local` `SUPABASE_SERVICE_ROLE_KEY` (was missing, caused URL shortener failure on localhost)
+- ✅ Fixed Google OAuth: added correct redirect URI in Google Cloud Console
+- ✅ **Bio URL change**: `j2z.com/u/username` → `j2z.com/username` (bio page now at root slug)
+  - Created `src/app/[username]/page.tsx` — new Linktree-style server-rendered bio page
+  - `src/app/u/[username]/page.tsx` now does `permanentRedirect()` to `/[username]`
+  - Middleware updated: bio page wins over short links (checked first); `/u/[username]` → `/[username]` 301
+  - RESERVED set expanded with edge-case paths
+- ✅ **Linktree features** added to bio pages:
+  - **Social links**: 16 platforms (Instagram, X, TikTok, YouTube, LinkedIn, GitHub, Snapchat, Facebook, Discord, WhatsApp, Telegram, Spotify, Twitch, Pinterest, Behance, Dribbble) — stored as `bio_links` with `platform` field, rendered as icon circles
+  - **Button styles**: 6 presets (glass, fill, outline, pill, pill-outline, soft) with live preview
+  - **Custom button colors**: accent color + button color + text color pickers
+  - **Background image**: URL input for custom bg image (with overlay)
+  - **Avatar image**: URL input for photo avatar (in addition to emoji picker)
+  - All colors support free color pickers (not just presets)
+- ✅ Created `src/lib/platforms.ts` — shared platform SVG paths (server + client safe)
+- ✅ Updated API: `/api/bio` PATCH handles new fields; `/api/bio/links` POST handles `platform`; bio POST validates against RESERVED list
+- ✅ Created `supabase/schema-additions-v2.sql` — user must run this in Supabase SQL editor
+- ✅ Build passes clean (`npm run build` ✓)
+
 ### Session 12 — Landing Page Polish (React perf + a11y + UX fixes)
 - ✅ Moved `Logo`, `QRIcon`, `T` outside `J2zLanding` component (eliminates per-render recreation)
 - ✅ Added `IcoDownload` + `BioAvatarIcon` inline SVG components — replaced `⬇` and `🚀` emojis
