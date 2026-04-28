@@ -30,49 +30,38 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL(`/${segments[1]}`, request.url), 301)
   }
 
-  // Single-segment paths: resolve in order — bio page wins, then short links
+  // Single-segment paths: resolve bio / link / QR in PARALLEL for speed
   if (segments.length === 1 && !RESERVED.has(segments[0])) {
     const slug = segments[0]
     const sb = makeServiceClient()
 
-    // 1. Bio page check — if found, let Next.js render [username]/page.tsx
-    const { data: bio } = await sb
-      .from('bio_pages')
-      .select('id')
-      .eq('username', slug)
-      .eq('is_published', true)
-      .maybeSingle()
+    const ua      = request.headers.get('user-agent') ?? ''
+    const country = request.headers.get('cf-ipcountry') ?? request.headers.get('x-vercel-ip-country') ?? null
+    const deviceType = parseDevice(ua)
+    const referrer   = request.headers.get('referer')?.slice(0, 500) ?? null
+    const userAgent  = ua.slice(0, 300)
 
+    // Run all 3 DB lookups in parallel instead of sequentially
+    const [{ data: bio }, { data: link }, { data: qr }] = await Promise.all([
+      sb.from('bio_pages').select('id').eq('username', slug).eq('is_published', true).maybeSingle(),
+      sb.from('links').select('id, destination_url').eq('slug', slug).eq('is_active', true).maybeSingle(),
+      sb.from('qr_codes').select('id, destination_url').eq('slug', slug).eq('is_active', true).maybeSingle(),
+    ])
+
+    // 1. Bio page wins — let Next.js render [username]/page.tsx
     if (bio) {
-      // Track bio page view fire-and-forget
       sb.rpc('track_click', {
         p_resource_type: 'bio',
         p_resource_id: bio.id,
-        p_country: request.headers.get('cf-ipcountry') ?? request.headers.get('x-vercel-ip-country') ?? null,
-        p_device_type: parseDevice(request.headers.get('user-agent') ?? ''),
-        p_referrer: request.headers.get('referer')?.slice(0, 500) ?? null,
-        p_user_agent: (request.headers.get('user-agent') ?? '').slice(0, 300),
+        p_country: country,
+        p_device_type: deviceType,
+        p_referrer: referrer,
+        p_user_agent: userAgent,
       }).then(() => {})
       return NextResponse.next()
     }
 
-    // 2. Short link check
-    const ua = request.headers.get('user-agent') ?? ''
-    const country =
-      request.headers.get('cf-ipcountry') ??
-      request.headers.get('x-vercel-ip-country') ??
-      null
-    const deviceType = parseDevice(ua)
-    const referrer = request.headers.get('referer')?.slice(0, 500) ?? null
-    const userAgent = ua.slice(0, 300)
-
-    const { data: link } = await sb
-      .from('links')
-      .select('id, destination_url')
-      .eq('slug', slug)
-      .eq('is_active', true)
-      .maybeSingle()
-
+    // 2. Short link redirect
     if (link) {
       sb.rpc('track_click', {
         p_resource_type: 'link',
@@ -93,17 +82,12 @@ export async function middleware(request: NextRequest) {
           })
         }
       })
-      return NextResponse.redirect(link.destination_url)
+      const res = NextResponse.redirect(link.destination_url, 301)
+      res.headers.set('Cache-Control', 'public, max-age=300, stale-while-revalidate=3600')
+      return res
     }
 
-    // 3. QR code check
-    const { data: qr } = await sb
-      .from('qr_codes')
-      .select('id, destination_url')
-      .eq('slug', slug)
-      .eq('is_active', true)
-      .maybeSingle()
-
+    // 3. QR code redirect
     if (qr) {
       sb.rpc('track_click', {
         p_resource_type: 'qr',
@@ -124,7 +108,9 @@ export async function middleware(request: NextRequest) {
           })
         }
       })
-      return NextResponse.redirect(qr.destination_url)
+      const res = NextResponse.redirect(qr.destination_url, 301)
+      res.headers.set('Cache-Control', 'public, max-age=300, stale-while-revalidate=3600')
+      return res
     }
 
     return NextResponse.redirect(new URL('/?notfound=1', request.url))

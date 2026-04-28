@@ -1,7 +1,13 @@
 import { notFound } from 'next/navigation'
+import { headers } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 import { PLATFORMS } from '@/lib/platforms'
 import type { Metadata } from 'next'
+
+function detectLang(acceptLang: string | null): 'ar' | 'en' {
+  if (!acceptLang) return 'en'
+  return acceptLang.includes('ar') ? 'ar' : 'en'
+}
 
 interface BioLink {
   id: string; title: string; url: string; sort_order: number; platform?: string | null; is_active: boolean
@@ -30,15 +36,24 @@ export async function generateMetadata({ params }: { params: Promise<{ username:
   const page = await getPage(username)
   if (!page) return { title: 'Not found' }
   const name = page.display_name || page.username
+  const desc = page.bio || `${name}'s links on J2z`
+  const url  = `https://j2z.com/${page.username}`
   return {
     title: `${name} — J2z`,
-    description: page.bio || `${name}'s links on J2z`,
+    description: desc,
     openGraph: {
       title: `${name} — J2z`,
-      description: page.bio || `${name}'s links on J2z`,
-      url: `https://j2z.com/${page.username}`,
+      description: desc,
+      url,
       siteName: 'J2z',
+      type: 'profile',
     },
+    twitter: {
+      card: 'summary',
+      title: `${name} — J2z`,
+      description: desc,
+    },
+    alternates: { canonical: url },
   }
 }
 
@@ -64,8 +79,9 @@ function getBtnStyle(style: string | null | undefined, accent: string, btnColor:
 
 export default async function BioPage({ params }: { params: Promise<{ username: string }> }) {
   const { username } = await params
-  const page = await getPage(username)
+  const [page, headersList] = await Promise.all([getPage(username), headers()])
   if (!page) notFound()
+  const lang = detectLang(headersList.get('accept-language'))
 
   const allLinks = (page.bio_links ?? []).filter(l => l.is_active).sort((a, b) => a.sort_order - b.sort_order)
   const socialLinks = allLinks.filter(l => l.platform && PLATFORMS[l.platform])
@@ -235,7 +251,7 @@ ${(btnStyle === 'glass') ? `.link-btn { backdrop-filter: blur(12px); -webkit-bac
 `
 
   return (
-    <html lang="en">
+    <html lang={lang} dir={lang === 'ar' ? 'rtl' : 'ltr'}>
       <head>
         <meta charSet="UTF-8"/>
         <meta name="viewport" content="width=device-width, initial-scale=1"/>
@@ -333,7 +349,7 @@ ${(btnStyle === 'glass') ? `.link-btn { backdrop-filter: blur(12px); -webkit-bac
             <p className="footer-cta-text">j2z.com/{page.username}</p>
             <a className="footer-cta-btn" href="/" target="_blank" rel="noopener noreferrer">
               <span className="footer-logo-dot" aria-hidden="true"/>
-              Create your free bio page
+              {lang === 'ar' ? 'أنشئ صفحتك المجانية' : 'Create your free bio page'}
             </a>
           </div>
         </div>
