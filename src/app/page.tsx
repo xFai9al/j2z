@@ -149,9 +149,18 @@ export default function J2zLanding() {
   const [qrResult, setQrResult] = useState<string | null>(null)
   const [qrUsed, setQrUsed] = useState(false)
   const [showSignupPrompt, setShowSignupPrompt] = useState(false)
+  const [linkNotFound, setLinkNotFound] = useState(false)
   const qrCanvasRef = useRef<HTMLCanvasElement>(null)
   const dir = lang === 'ar' ? 'rtl' : 'ltr'
   const t = T[lang]
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.location.search.includes('notfound=1')) {
+      setLinkNotFound(true)
+      window.history.replaceState({}, '', '/')
+      setTimeout(() => setLinkNotFound(false), 5000)
+    }
+  }, [])
 
   useEffect(() => {
     if (qrResult && qrCanvasRef.current) {
@@ -368,6 +377,8 @@ body{background:var(--paper);color:var(--ink);font-family:'Space Grotesk','Tajaw
 .prompt-consent a{color:var(--coral-deep);text-decoration:underline;font-weight:600;cursor:pointer;}
 .prompt-close{margin-top:10px;background:none;border:none;color:var(--ink-mute);font-size:13px;cursor:pointer;font-family:inherit;text-decoration:underline;min-height:44px;padding:0 8px;}
 .prompt-close:hover{color:var(--ink);}
+.notfound-bar{position:fixed;top:72px;left:50%;transform:translateX(-50%);z-index:150;background:#2F2A24;color:white;padding:10px 20px;border-radius:10px;font-size:13.5px;font-weight:500;display:flex;align-items:center;gap:10px;box-shadow:0 8px 24px rgba(47,42,36,.25);animation:slideIn .3s ease;white-space:nowrap;}
+.notfound-bar svg{flex-shrink:0;}
 button,a{touch-action:manipulation;}
 .tool-btn:active,.bio-cta-btn:active,.cta-btn:active,.btn-signup:active,.qr-dl-btn:active{transform:scale(0.97) translateY(0)!important;transition-duration:0.05s!important;}
 .tool-copy-btn:active,.btn-s:active,.prompt-btn:active{transform:scale(0.97)!important;transition-duration:0.05s!important;}
@@ -393,6 +404,12 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--coral);outline-offs
     <>
       <style dangerouslySetInnerHTML={{__html: css}} suppressHydrationWarning/>
       <div dir={dir}>
+        {linkNotFound && (
+          <div className="notfound-bar" role="alert">
+            <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round"><circle cx="10" cy="10" r="8"/><line x1="10" y1="6" x2="10" y2="10"/><line x1="10" y1="14" x2="10" y2="14"/></svg>
+            {lang === 'ar' ? 'هذا الرابط غير موجود أو تم إيقافه.' : 'This link does not exist or has been deactivated.'}
+          </div>
+        )}
         <nav className="nav">
           <div className="nav-inner">
             <a className="nav-logo" href="#top">
