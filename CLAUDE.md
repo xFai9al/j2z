@@ -429,6 +429,24 @@ git add -A && git commit -m "message" && git push origin master
 
 ---
 
+## Coding Principles (Karpathy Skills)
+
+These four principles govern how Claude approaches every coding task in this project.
+
+### 1. Think Before Coding
+State assumptions explicitly before writing code. If a request is ambiguous, ask one clarifying question rather than guessing. Surface tradeoffs before implementation begins — not after.
+
+### 2. Simplicity First
+Write minimal code that addresses only what was requested. No speculative features, unnecessary abstractions, or edge-case error handling that won't realistically occur. Self-check: would a senior engineer find this overcomplicated?
+
+### 3. Surgical Changes
+When modifying existing code, touch only what's necessary. Match the existing style (inline CSS, caveman brevity, bilingual pattern) even if a different approach would be preferred. Do not refactor unrelated sections. Do not remove pre-existing dead code unless asked.
+
+### 4. Goal-Driven Execution
+Turn vague requests into verifiable success criteria before starting. "Fix the bio page" → "bio page loads at `/username`, social icons render, button styles apply." Clarify what *done* looks like first.
+
+---
+
 ## Design Files Reference (in `j2z2/` folder on Desktop)
 
 | File | Ported to | Status |
