@@ -148,6 +148,7 @@ export default function J2zLanding() {
   const [qrInput, setQrInput] = useState('')
   const [qrResult, setQrResult] = useState<string | null>(null)
   const [qrUsed, setQrUsed] = useState(false)
+  const [qrError, setQrError] = useState('')
   const [showSignupPrompt, setShowSignupPrompt] = useState(false)
   const [linkNotFound, setLinkNotFound] = useState(false)
   const qrCanvasRef = useRef<HTMLCanvasElement>(null)
@@ -210,6 +211,7 @@ export default function J2zLanding() {
     const v = qrInput.trim()
     if (!v) return
     if (qrUsed) { setShowSignupPrompt(true); return }
+    setQrError('')
     try {
       const res = await fetch('/api/shorten', {
         method: 'POST',
@@ -218,7 +220,8 @@ export default function J2zLanding() {
       })
       const data = await res.json()
       if (res.ok) { setQrResult(data.short_url); setQrUsed(true) }
-    } catch { /* ignore */ }
+      else setQrError(data.error || 'Something went wrong')
+    } catch { setQrError('Network error — please try again') }
   }
 
   const downloadQR = () => {
@@ -540,6 +543,7 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--coral);outline-offs
                   </span>
                 </button>
               </div>
+              {qrError && <div style={{fontSize:13,color:'#C03030',marginTop:8,padding:'6px 10px',background:'#FDEAEA',borderRadius:7}}>{qrError}</div>}
               {qrResult && (
                 <div className="qr-result-wrap">
                   <div className="qr-canvas-box">

@@ -1,11 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextRequest, NextResponse } from 'next/server'
-
-const RESERVED = new Set([
-  'auth', 'dashboard', 'admin', 'terms', 'privacy', 'api', 'u',
-  'not-found', 'error', 'sitemap', 'robots', 'favicon', 'sw', 'manifest',
-  '_next', 'static', 'images',
-])
+import { RESERVED } from '@/lib/constants'
 
 function parseDevice(ua: string): string {
   if (/ipad/i.test(ua)) return 'tablet'
