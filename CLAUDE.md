@@ -319,6 +319,19 @@ In `.env.local` it is stored under BOTH `NEXT_PUBLIC_SUPABASE_ANON_KEY` and `NEX
 - ✅ Built `src/app/api/admin/blocklist/route.ts` — GET/POST/DELETE, verifies admin email, service role key
 - ✅ Committed and pushed (commits `907c9d1`, `3accf5c`)
 
+### Session 14 — Hardening Pass (anon rate limiting, multi-admin, bio field caps)
+- Ran `/office-hours` (builder mode) — full-codebase audit found 3 real gaps: `anon_usage` table unused (no rate limiting), admin access hardcoded to one email in 3 places, bio fields had no length caps. Design doc went through 3 rounds of adversarial review (9/10) before implementation — caught a factual error (anon QR "abuse" doesn't exist, `/api/qr` is already auth-gated) before it shipped.
+- ✅ Created `supabase/schema-additions-v3.sql` — **user must run this in Supabase SQL editor**:
+  - `admin_users` table (flat allowlist), seeds Faisal's existing account by email
+  - `anon_usage` gets a `usage_date` column + composite PK `(ip_hash, usage_date)` so daily limits actually reset
+  - CHECK constraints on `bio_pages.display_name` (60) / `.bio` (160) / `.bg_image_url` (500) / `.avatar_url` (500)
+- ✅ Created `src/lib/anon-limit.ts` — `checkAnonLinkLimit()`, 1 link/day per IP hash (sha256, salted with service role key), wired into `src/app/api/shorten/route.ts` only (`/api/qr` is already auth-gated, no anon path exists there)
+- ✅ Created `src/lib/admin.ts` — `isAdmin()` helper against `admin_users`, replaces hardcoded `ADMIN_EMAIL` in `src/app/api/admin/stats/route.ts`, `src/app/api/admin/blocklist/route.ts`
+- ✅ Created `src/app/api/admin/me/route.ts` — `GET` returns `{ isAdmin }`, used by `src/app/admin/page.tsx` client-side check instead of duplicating the hardcoded email a third time
+- ✅ Added `maxLength` hints (60/160/500) to the bio dashboard's display name, tagline, background image URL, and avatar URL inputs — client-side hint only, the DB CHECK constraint is the real gate
+- ✅ Build passes clean (`npm run build` ✓)
+- ⚠️ **Not yet tested against a live Supabase instance** — schema-additions-v3.sql needs to be run before this branch is merged, then manually verify: anon link limit blocks after 1/day, admin panel access works via `admin_users` row, over-length bio field rejected by DB
+
 ### Session 13 — Bio Page Linktree Upgrade + Redesign Fixes
 - ✅ Fixed `src/app/globals.css` body style override (removed Tailwind slate overrides that fought inline CSS)
 - ✅ Fixed `src/app/layout.tsx` — removed dead Geist font loading, added og:image/Twitter card meta

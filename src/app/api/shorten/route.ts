@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { createServerClient } from '@supabase/ssr'
 import { generateSlug, isValidUrl, ensureHttps } from '@/lib/utils'
+import { checkAnonLinkLimit } from '@/lib/anon-limit'
 import { NextRequest, NextResponse } from 'next/server'
 
 function makeServiceClient() {
@@ -43,6 +44,13 @@ export async function POST(req: NextRequest) {
   const anonClient = createClient()
   const { data: sessionData } = await anonClient.auth.getUser()
   const userId = sessionData?.user?.id ?? null
+
+  if (!userId) {
+    const allowed = await checkAnonLinkLimit(req, service)
+    if (!allowed) {
+      return NextResponse.json({ error: 'Daily limit reached — sign up for unlimited links' }, { status: 429 })
+    }
+  }
 
   // Use service role to bypass RLS — allows both anon and authenticated inserts
   const { data, error } = await service

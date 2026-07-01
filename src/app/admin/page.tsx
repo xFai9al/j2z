@@ -23,8 +23,6 @@ interface BlockEntry {
   created_at: string
 }
 
-const ADMIN_EMAIL = 'faisal@aba-alkhail.com'
-
 const TXT = {
   en: {
     title: 'Admin Panel', subtitle: 'Platform overview',
@@ -158,7 +156,14 @@ export default function AdminPage() {
 
   useEffect(() => {
     getSupabase().auth.getUser().then(async ({ data }) => {
-      if (!data.user || data.user.email?.toLowerCase() !== ADMIN_EMAIL) {
+      if (!data.user) {
+        setForbidden(true)
+        setLoading(false)
+        return
+      }
+      const meRes = await fetch('/api/admin/me')
+      const me = meRes.ok ? await meRes.json() : { isAdmin: false }
+      if (!me.isAdmin) {
         setForbidden(true)
         setLoading(false)
         return

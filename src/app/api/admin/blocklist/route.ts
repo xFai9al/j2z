@@ -1,8 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { createServerClient } from '@supabase/ssr'
+import { isAdmin } from '@/lib/admin'
 import { NextRequest, NextResponse } from 'next/server'
-
-const ADMIN_EMAIL = 'faisal@aba-alkhail.com'
 
 function makeServiceClient() {
   return createServerClient(
@@ -15,7 +14,8 @@ function makeServiceClient() {
 async function checkAdmin() {
   const sb = createClient()
   const { data: { user } } = await sb.auth.getUser()
-  return user?.email?.toLowerCase() === ADMIN_EMAIL ? user : null
+  if (!user) return null
+  return (await isAdmin(makeServiceClient(), user.id)) ? user : null
 }
 
 export async function GET() {

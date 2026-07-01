@@ -1133,12 +1133,12 @@ button:focus-visible,a:focus-visible { outline:2px solid #D45A3F; outline-offset
                   </div>
                   <div className="bio-field">
                     <label>{t.bio_display_name}</label>
-                    <input className="t-input" placeholder={displayName} value={bioForm.display_name}
+                    <input className="t-input" placeholder={displayName} value={bioForm.display_name} maxLength={60}
                       onChange={e => setBioForm(f => ({...f, display_name: e.target.value}))}/>
                   </div>
                   <div className="bio-field">
                     <label>{t.bio_tagline}</label>
-                    <input className="t-input" placeholder={lang==='en'?'Creator · Designer · Builder':'مبدع · مصمم · مطور'} value={bioForm.bio}
+                    <input className="t-input" placeholder={lang==='en'?'Creator · Designer · Builder':'مبدع · مصمم · مطور'} value={bioForm.bio} maxLength={160}
                       onChange={e => setBioForm(f => ({...f, bio: e.target.value}))}/>
                   </div>
                   {bioError && <div style={{color:'#C03030',fontSize:13,marginBottom:10,padding:'8px 12px',background:'#FDEAEA',borderRadius:8}}>{bioError}</div>}
@@ -1184,12 +1184,12 @@ button:focus-visible,a:focus-visible { outline:2px solid #D45A3F; outline-offset
                       <div className="card-hd">{t.bio_profile}</div>
                       <div className="bio-field" style={{marginBottom:10}}>
                         <label>{t.bio_display_name}</label>
-                        <input className="t-input" value={bioForm.display_name}
+                        <input className="t-input" value={bioForm.display_name} maxLength={60}
                           onChange={e => setBioForm(f => ({...f, display_name: e.target.value}))}/>
                       </div>
                       <div className="bio-field" style={{marginBottom:12}}>
                         <label>{t.bio_tagline}</label>
-                        <input className="t-input" value={bioForm.bio}
+                        <input className="t-input" value={bioForm.bio} maxLength={160}
                           onChange={e => setBioForm(f => ({...f, bio: e.target.value}))}/>
                       </div>
                       <button className={`btn-s ${bioSaved?'ok':''}`} onClick={saveBioProfile} disabled={bioSaving}>
@@ -1273,7 +1273,7 @@ button:focus-visible,a:focus-visible { outline:2px solid #D45A3F; outline-offset
                       <div style={{marginTop:12}}>
                         <div style={{fontSize:12,color:'var(--ink3)',marginBottom:5}}>{lang==='ar'?'صورة الخلفية (URL)':'Background image URL (optional)'}</div>
                         <div style={{display:'flex',gap:6}}>
-                          <input className="t-input" style={{flex:1,fontSize:12}} dir="ltr" type="url" placeholder="https://..." value={bioBgImage}
+                          <input className="t-input" style={{flex:1,fontSize:12}} dir="ltr" type="url" placeholder="https://..." value={bioBgImage} maxLength={500}
                             onChange={e => setBioBgImage(e.target.value)}/>
                           <button className="btn-s" onClick={() => saveBioAppearance({ bg_image_url: bioBgImage || null as unknown as string })}>
                             {lang==='ar'?'حفظ':'Save'}
@@ -1345,7 +1345,7 @@ button:focus-visible,a:focus-visible { outline:2px solid #D45A3F; outline-offset
                       <div style={{marginBottom:10}}>
                         <div style={{fontSize:12,color:'var(--ink3)',marginBottom:5}}>{lang==='ar'?'رابط الصورة (URL)':'Image URL (optional)'}</div>
                         <div style={{display:'flex',gap:6}}>
-                          <input className="t-input" style={{flex:1,fontSize:12}} dir="ltr" type="url" placeholder="https://..."
+                          <input className="t-input" style={{flex:1,fontSize:12}} dir="ltr" type="url" placeholder="https://..." maxLength={500}
                             value={bioAvatar.startsWith('http') ? bioAvatar : ''}
                             onChange={e => setBioAvatar(e.target.value)}/>
                           <button className="btn-s" onClick={() => saveBioAvatar(bioAvatar.startsWith('http') ? bioAvatar : '')}>
