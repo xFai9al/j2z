@@ -1,8 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { createServerClient } from '@supabase/ssr'
+import { isAdmin } from '@/lib/admin'
 import { NextResponse } from 'next/server'
-
-const ADMIN_EMAIL = 'faisal@aba-alkhail.com'
 
 function makeServiceClient() {
   return createServerClient(
@@ -15,11 +14,10 @@ function makeServiceClient() {
 export async function GET() {
   const sb = createClient()
   const { data: { user } } = await sb.auth.getUser()
-  if (!user || user.email?.toLowerCase() !== ADMIN_EMAIL) {
+  const svc = makeServiceClient()
+  if (!user || !(await isAdmin(svc, user.id))) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
-
-  const svc = makeServiceClient()
 
   const [
     { count: totalUsers },
