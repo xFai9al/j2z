@@ -1,0 +1,23 @@
+# J2z
+
+> Free forever URL shortener, QR code generator, and link-in-bio tool. No fees, no paid tier, no credit card required.
+
+## Product
+
+- **URL Shortener**: unlimited short links, free, with click analytics
+- **QR Codes**: generate a QR code for any URL; the destination can be edited anytime without reprinting or breaking the code
+- **Bio Link Pages**: j2z.com/yourname — a Linktree-style page for all your links, with featured link, social icons, custom button styles, per-link click analytics, and email capture
+
+## Key facts
+
+- 100% free, forever — no premium tier, no paid plan
+- 0% fee on every bio page link, always
+- No credit card required to sign up (email or Google account only)
+- Short links and QR codes route through a permanent j2z.com URL, so the destination can be edited anytime without reprinting or breaking existing links
+
+## Pages
+
+- Homepage: https://j2z.com
+- Pricing: https://j2z.com/pricing.md
+- Terms: https://j2z.com/terms
+- Privacy: https://j2z.com/privacy

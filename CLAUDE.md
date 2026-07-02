@@ -394,6 +394,16 @@ In `.env.local` it is stored under BOTH `NEXT_PUBLIC_SUPABASE_ANON_KEY` and `NEX
 - ✅ `npm run build` passes clean — `/robots.txt` and `/sitemap.xml` prerender static, `/opengraph-image` is edge/dynamic as expected
 - Not yet verified: OG image render at actual `j2z.com/opengraph-image` in production (Vercel edge), sitemap output once real bio pages are published
 
+### Session 17 — AI SEO (llms.txt, FAQ + schema, RESERVED bug fix)
+- Ran `/marketing-skills:ai-seo`. Scoped to structural/citation basics for ChatGPT/Perplexity/Claude (Google AI Overviews explicitly need nothing special per Google's own guide — normal E-E-A-T is the Google play, not schema). Skipped multi-page comparison content as too big for this pass.
+- Verified the "competitors charge 9–12% fees" claim from Session 15's research note before publishing anything — both Linktree and Beacons pricing pages failed to fetch (404/403), so the copy was softened to unattributed, defensible framing ("many link-in-bio tools take a cut," no named percentage) rather than publishing a stale specific number against named competitors.
+- ✅ Added FAQ section to `src/app/page.tsx` (5 Q&A, bilingual EN/AR, native `<details>/<summary>` accordion — accessible, no JS, fully extractable) between the feature-compare section and the final CTA
+- ✅ Added `WebApplication` + `FAQPage` JSON-LD schema (`<script type="application/ld+json">` in the page return), sourced from `T.en` directly (not the live `t`/`lang` toggle) so schema always matches the SSR'd default-English HTML regardless of client-side language state
+- ✅ Created `public/llms.txt` and `public/pricing.md` — plain-text/markdown context files for AI agents (product summary, 0%-fee guarantee, free-forever facts)
+- **Found and fixed a real bug while verifying**: `src/middleware.ts`'s single-segment slug lookup treats any unmatched one-segment path as a bio/link/qr slug and 301s to `/?notfound=1` on no match. `src/lib/constants.ts`'s `RESERVED` set had bare words `'sitemap'`/`'robots'` that don't match the actual served paths `sitemap.xml`/`robots.txt` — meaning **`/robots.txt` and `/sitemap.xml` from Session 16 were silently broken in production since the moment they were added** (redirected to home instead of serving). Fixed `RESERVED` to the exact strings `'sitemap.xml'`, `'robots.txt'`, added `'llms.txt'`, `'pricing.md'`, `'opengraph-image'` (same bug would've hit the Session 16 OG image route too).
+- ✅ Verified fix locally: built, ran `npm run start` on a scratch port, curled all 5 routes (`robots.txt`, `sitemap.xml`, `llms.txt`, `pricing.md`, `opengraph-image`) — all return `200` with correct body content (previously would have been silent redirects)
+- ✅ `npm run build` passes clean
+
 ---
 
 ## What's Next (Pending Work)

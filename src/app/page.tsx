@@ -110,6 +110,17 @@ const T = {
     cta_title: 'Ready in 10 seconds.',
     cta_sub: 'Create your first short link right now. Sign up later if you love it.',
     cta_btn: 'Get started — free forever',
+    faq_tag: 'FAQ', faq_title: 'Questions, answered.',
+    faq_q1: 'Is J2z free to use?',
+    faq_a1: 'Yes. J2z is free forever — unlimited short links, QR codes, and a bio link page, with no credit card required and no paid tier to upgrade to.',
+    faq_q2: 'Does J2z charge a fee on bio page links?',
+    faq_a2: "No. J2z charges 0% on every bio page link, always. Many link-in-bio tools take a cut or gate features behind a paid tier — J2z doesn't.",
+    faq_q3: 'How is J2z different from Linktree?',
+    faq_a3: 'J2z combines a URL shortener, QR code generator, and a Linktree-style bio page in one free account, with no fees and no paid tier. Linktree focuses on bio pages only and charges for premium features.',
+    faq_q4: "Can I change where my QR code points after I've printed it?",
+    faq_a4: 'Yes. J2z QR codes route through a permanent J2z URL. Edit the destination anytime in your dashboard — the printed QR code keeps working without reprinting.',
+    faq_q5: 'Do I need a credit card to sign up?',
+    faq_a5: 'No. Signing up requires only an email or Google account — no credit card, no trial, no automatic charges.',
     footer_terms: 'Terms', footer_privacy: 'Privacy', footer_contact: 'Contact',
     footer_tagline: 'Smart links, free forever.', footer_rights: '© 2026 J2z. Made with care.',
     prompt_title: 'Love it? Keep going →',
@@ -145,6 +156,17 @@ const T = {
     cta_title: 'جاهز في ١٠ ثوانٍ.',
     cta_sub: 'أنشئ أول رابط مختصر الآن. سجّل لاحقاً إذا أعجبك.',
     cta_btn: 'ابدأ — مجاني للأبد',
+    faq_tag: 'الأسئلة الشائعة', faq_title: 'أسئلة، وأجوبتها.',
+    faq_q1: 'هل J2z مجاني فعلاً؟',
+    faq_a1: 'نعم. J2z مجاني للأبد — روابط مختصرة غير محدودة، أكواد QR، وصفحة بالنك بيو، بدون بطاقة ائتمان وبدون باقات مدفوعة.',
+    faq_q2: 'هل يفرض J2z عمولة على روابط صفحة البالنك؟',
+    faq_a2: 'لا. J2z لا يأخذ أي عمولة على أي رابط في صفحتك، أبداً. كثير من أدوات البالنك بيو تأخذ نسبة أو تحجب الميزات خلف باقة مدفوعة — J2z لا يفعل ذلك.',
+    faq_q3: 'ما الفرق بين J2z ولينكتري (Linktree)؟',
+    faq_a3: 'J2z يجمع مختصر روابط، مولّد أكواد QR، وصفحة بالنك بيو في حساب واحد مجاني بدون عمولات وبدون باقات مدفوعة. لينكتري يركز فقط على صفحات البالنك ويفرض رسوماً على الميزات المتقدمة.',
+    faq_q4: 'هل أقدر أغيّر وجهة كود QR بعد ما طبعته؟',
+    faq_a4: 'نعم. أكواد QR في J2z تمر عبر رابط J2z ثابت. عدّل الوجهة في أي وقت من لوحة التحكم — الكود المطبوع يستمر بالعمل بدون إعادة طباعة.',
+    faq_q5: 'هل أحتاج بطاقة ائتمان للتسجيل؟',
+    faq_a5: 'لا. التسجيل يحتاج فقط بريد إلكتروني أو حساب جوجل — بدون بطاقة ائتمان، بدون فترة تجريبية، وبدون خصومات تلقائية.',
     footer_terms: 'الشروط', footer_privacy: 'الخصوصية', footer_contact: 'تواصل',
     footer_tagline: 'روابط ذكية، مجانية للأبد.', footer_rights: '© ٢٠٢٦ J2z. صنّع بعناية.',
     prompt_title: 'أعجبك؟ واصل →',
@@ -377,6 +399,13 @@ body{background:var(--paper);color:var(--ink);font-family:'Space Grotesk','Tajaw
 .feat-box p{font-size:13px;line-height:1.5;}
 .feat-box.bad p{color:rgba(255,255,255,.6);}
 @media(max-width:640px){.feat-compare{grid-template-columns:1fr;}}
+.faq-list{max-width:680px;margin:0 auto;display:flex;flex-direction:column;gap:10px;}
+.faq-item{background:var(--paper);border:1px solid rgba(47,42,36,.1);border-radius:12px;padding:16px 20px;}
+.faq-item summary{cursor:pointer;font-family:'Cal Sans',sans-serif;font-weight:700;font-size:15px;list-style:none;display:flex;align-items:center;justify-content:space-between;touch-action:manipulation;}
+.faq-item summary::-webkit-details-marker{display:none;}
+.faq-item summary::after{content:'+';font-size:20px;color:var(--coral-deep);flex-shrink:0;margin-inline-start:12px;}
+.faq-item[open] summary::after{content:'−';}
+.faq-item p{margin-top:10px;font-size:13.5px;line-height:1.6;color:var(--ink);opacity:.75;}
 .cta{text-align:center;padding:70px 20px;background:linear-gradient(135deg,var(--coral-soft) 0%,var(--butter-soft) 100%);position:relative;overflow:hidden;}.cta::before{content:'';position:absolute;top:-100px;left:-100px;width:400px;height:400px;background:radial-gradient(circle,var(--coral) 0%,transparent 60%);opacity:0.1;}.cta::after{content:'';position:absolute;bottom:-100px;right:-100px;width:400px;height:400px;background:radial-gradient(circle,var(--sage) 0%,transparent 60%);opacity:0.15;}
 .cta-inner{max-width:640px;margin:0 auto;position:relative;z-index:1;}
 .cta h2{font-family:'Cal Sans','Tajawal',sans-serif;font-size:clamp(30px,4.5vw,44px);font-weight:700;line-height:1;letter-spacing:-.04em;margin-bottom:12px;}
@@ -437,6 +466,31 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--coral);outline-offs
   return (
     <>
       <style dangerouslySetInnerHTML={{__html: css}} suppressHydrationWarning/>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{__html: JSON.stringify({
+          '@context': 'https://schema.org',
+          '@type': 'WebApplication',
+          name: 'J2z',
+          url: 'https://j2z.com',
+          applicationCategory: 'BusinessApplication',
+          operatingSystem: 'Any',
+          description: T.en.hero_sub,
+          offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+        })}}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{__html: JSON.stringify({
+          '@context': 'https://schema.org',
+          '@type': 'FAQPage',
+          mainEntity: [1, 2, 3, 4, 5].map(n => ({
+            '@type': 'Question',
+            name: T.en[`faq_q${n}` as keyof typeof T.en],
+            acceptedAnswer: { '@type': 'Answer', text: T.en[`faq_a${n}` as keyof typeof T.en] },
+          })),
+        })}}
+      />
       <div dir={dir}>
         <div className="grain-overlay" aria-hidden="true"/>
         {linkNotFound && (
@@ -640,6 +694,23 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--coral);outline-offs
                 <div className="feat-box-label">{lang === 'en' ? 'The J2z way' : 'طريقة J2z'}</div>
                 <h4>{t.feat_2_title}</h4><p>{t.feat_2_desc}</p>
               </div>
+            </div>
+          </Reveal>
+        </section>
+
+        <section className="section" id="faq">
+          <Reveal className="section-inner">
+            <div className="section-head">
+              <div className="section-tag">{t.faq_tag}</div>
+              <h2>{t.faq_title}</h2>
+            </div>
+            <div className="faq-list" dir={dir}>
+              {[1, 2, 3, 4, 5].map(n => (
+                <details className="faq-item" key={n}>
+                  <summary>{t[`faq_q${n}` as keyof typeof t]}</summary>
+                  <p>{t[`faq_a${n}` as keyof typeof t]}</p>
+                </details>
+              ))}
             </div>
           </Reveal>
         </section>
