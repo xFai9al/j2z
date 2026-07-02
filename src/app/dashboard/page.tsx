@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import type { User } from '@supabase/supabase-js'
 import QRCode from 'qrcode'
 import { PLATFORMS, PLATFORM_KEYS } from '@/lib/platforms'
+import { FONT_PAIRINGS } from '@/lib/bio-fonts'
 
 type Lang = 'en' | 'ar'
 type TabKey = 'overview' | 'links' | 'qr' | 'bio' | 'analytics' | 'settings'
@@ -28,8 +29,12 @@ interface BioPage {
   id: string; username: string; display_name: string | null; bio: string | null
   is_published: boolean; accent_color: string; background_color: string; avatar_url: string | null
   button_style?: string; button_color?: string; button_text_color?: string; bg_image_url?: string | null
+  font_pairing?: string; collect_emails?: boolean
 }
-interface BioLink { id: string; title: string; url: string; sort_order: number; platform?: string | null }
+interface BioLink {
+  id: string; title: string; url: string; sort_order: number; platform?: string | null
+  is_featured?: boolean; clicks?: number
+}
 const DAYS = { en: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'], ar: ['إث','ثلا','أرب','خمي','جمع','سبت','أحد'] }
 
 const BIO_THEMES = [
@@ -290,6 +295,10 @@ export default function Dashboard() {
   const [bioButtonColor, setBioButtonColor] = useState('')
   const [bioButtonTextColor, setBioButtonTextColor] = useState('')
   const [bioBgImage, setBioBgImage] = useState('')
+  const [bioFontPairing, setBioFontPairing] = useState('default')
+  const [bioCollectEmails, setBioCollectEmails] = useState(false)
+  const [bioSubscribers, setBioSubscribers] = useState<{ email: string; created_at: string }[]>([])
+  const [bioSubscribersLoaded, setBioSubscribersLoaded] = useState(false)
   const [newSocialPlatform, setNewSocialPlatform] = useState('')
   const [newSocialUrl, setNewSocialUrl] = useState('')
   const [socialAdding, setSocialAdding] = useState(false)
@@ -350,8 +359,19 @@ export default function Dashboard() {
       setBioButtonColor(data.page.button_color ?? '')
       setBioButtonTextColor(data.page.button_text_color ?? '')
       setBioBgImage(data.page.bg_image_url ?? '')
+      setBioFontPairing(data.page.font_pairing ?? 'default')
+      setBioCollectEmails(!!data.page.collect_emails)
     }
     setBioLoaded(true)
+  }, [])
+
+  const fetchBioSubscribers = useCallback(async () => {
+    const res = await fetch('/api/bio/subscribers')
+    if (res.ok) {
+      const data = await res.json()
+      setBioSubscribers(data.subscribers ?? [])
+    }
+    setBioSubscribersLoaded(true)
   }, [])
 
   useEffect(() => {
@@ -389,8 +409,9 @@ export default function Dashboard() {
       }, 50)
     }
     if (tab === 'bio' && !bioLoaded) fetchBio()
+    if (tab === 'bio' && bioLoaded && bioCollectEmails && !bioSubscribersLoaded) fetchBioSubscribers()
     if (tab === 'analytics' && !analyticsLoaded) fetchAnalytics()
-  }, [tab, qrs, drawQR, bioLoaded, fetchBio, analyticsLoaded, fetchAnalytics])
+  }, [tab, qrs, drawQR, bioLoaded, fetchBio, analyticsLoaded, fetchAnalytics, bioCollectEmails, bioSubscribersLoaded, fetchBioSubscribers])
 
   const copyLink = (slug: string, id: string) => {
     navigator.clipboard.writeText(`j2z.com/${slug}`).catch(() => {})
@@ -624,6 +645,50 @@ export default function Dashboard() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ title: editBioLinkTitle, url: editBioLinkUrl }),
     })
+  }
+
+  const toggleFeaturedLink = async (id: string) => {
+    const link = bioLinks.find(l => l.id === id)
+    if (!link) return
+    const nowFeatured = !link.is_featured
+    setBioLinks(p => p.map(l => l.id === id ? { ...l, is_featured: nowFeatured } : { ...l, is_featured: nowFeatured ? false : l.is_featured }))
+    await fetch(`/api/bio/links/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ is_featured: nowFeatured }),
+    })
+  }
+
+  const saveBioFontPairing = async (id: string) => {
+    setBioFontPairing(id)
+    setBioPage(p => p ? { ...p, font_pairing: id } : p)
+    await fetch('/api/bio', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ font_pairing: id }),
+    })
+  }
+
+  const toggleCollectEmails = async () => {
+    const next = !bioCollectEmails
+    setBioCollectEmails(next)
+    setBioPage(p => p ? { ...p, collect_emails: next } : p)
+    if (next) fetchBioSubscribers()
+    await fetch('/api/bio', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ collect_emails: next }),
+    })
+  }
+
+  const exportSubscribersCsv = () => {
+    const rows = [['email', 'subscribed_at'], ...bioSubscribers.map(s => [s.email, s.created_at])]
+    const csv = rows.map(r => r.map(v => `"${v}"`).join(',')).join('\n')
+    const blob = new Blob([csv], { type: 'text/csv' })
+    const a = document.createElement('a')
+    a.href = URL.createObjectURL(blob)
+    a.download = `${bioPage?.username ?? 'bio'}-subscribers.csv`
+    a.click()
   }
 
   const saveSettings = async () => {
@@ -1200,8 +1265,8 @@ button:focus-visible,a:focus-visible { outline:2px solid #D45A3F; outline-offset
                     <div className="card">
                       <div className="card-hd">{t.bio_your_links}</div>
                       <div className="link-list" style={{marginBottom:12}}>
-                        {bioLinks.length === 0 && <div style={{fontSize:13,color:'var(--ink3)',textAlign:'center',padding:'12px 0'}}>{t.bio_no_links}</div>}
-                        {bioLinks.map(l => (
+                        {bioLinks.filter(l => !l.platform).length === 0 && <div style={{fontSize:13,color:'var(--ink3)',textAlign:'center',padding:'12px 0'}}>{t.bio_no_links}</div>}
+                        {bioLinks.filter(l => !l.platform).map(l => (
                           <div key={l.id} className="bio-lnk-row">
                             {editBioLinkId === l.id ? (
                               <>
@@ -1212,8 +1277,13 @@ button:focus-visible,a:focus-visible { outline:2px solid #D45A3F; outline-offset
                               </>
                             ) : (
                               <>
-                                <div style={{flex:1,minWidth:80}}><div className="bio-lnk-title">{l.title}</div><div className="bio-lnk-url">{l.url}</div></div>
+                                <div style={{flex:1,minWidth:80}}>
+                                  <div className="bio-lnk-title">{l.title}{l.is_featured && <span style={{marginLeft:6,fontSize:11,color:'var(--coral-deep, #D45A3F)'}}>★ {lang==='ar'?'مميز':'Featured'}</span>}</div>
+                                  <div className="bio-lnk-url">{l.url}</div>
+                                  <div style={{fontSize:11,color:'var(--ink3)',marginTop:2}}>{lang==='ar'?`${l.clicks ?? 0} نقرة`:`${l.clicks ?? 0} click${(l.clicks ?? 0)===1?'':'s'}`}</div>
+                                </div>
                                 <div className="acts">
+                                  <button className={`btn-s ${l.is_featured?'ok':''}`} onClick={()=>toggleFeaturedLink(l.id)} title={lang==='ar'?'تعيين كمميز':'Feature this link'}>★</button>
                                   <button className="btn-s" onClick={()=>{setEditBioLinkId(l.id);setEditBioLinkTitle(l.title);setEditBioLinkUrl(l.url);}}>{t.edit}</button>
                                   <button className="btn-s rm" onClick={()=>deleteBioLink(l.id)}>{t.del}</button>
                                 </div>
@@ -1339,6 +1409,55 @@ button:focus-visible,a:focus-visible { outline:2px solid #D45A3F; outline-offset
                       {appearanceSaved && <div style={{fontSize:12,color:'var(--sage)',marginTop:8}}>{lang==='ar'?'تم الحفظ ✓':'Saved ✓'}</div>}
                     </div>
 
+                    {/* Font pairing */}
+                    <div className="card" style={{marginTop:0}}>
+                      <div className="card-hd">{lang==='ar'?'زوج الخطوط':'Font pairing'}</div>
+                      <div style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:8}}>
+                        {FONT_PAIRINGS.map(fp => (
+                          <button
+                            key={fp.id}
+                            onClick={() => saveBioFontPairing(fp.id)}
+                            style={{
+                              padding:'12px 8px',fontSize:11,fontWeight:600,cursor:'pointer',
+                              borderRadius:8,border:bioFontPairing===fp.id?`2px solid ${bioAccent}`:'2px solid var(--border)',
+                              background:'var(--surface)',color:'var(--ink)',transition:'all .15s',
+                            }}
+                            aria-pressed={bioFontPairing===fp.id}
+                          >
+                            <div style={{fontFamily:fp.display,fontSize:16,marginBottom:3}}>Aa</div>
+                            <div style={{opacity:.7}}>{lang==='ar'?fp.ar:fp.en}</div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Email capture */}
+                    <div className="card" style={{marginTop:0}}>
+                      <div className="card-hd">{lang==='ar'?'جمع الإيميلات':'Email capture'}</div>
+                      <div className="bio-toggle-row" style={{marginBottom: bioCollectEmails ? 12 : 0}}>
+                        <div className="bio-toggle-label">
+                          {lang==='ar'?'إظهار نموذج اشتراك بالإيميل بصفحتك':'Show an email signup form on your page'}
+                        </div>
+                        <label className="bio-toggle" aria-label={lang==='ar'?'تفعيل جمع الإيميلات':'Enable email capture'}>
+                          <input type="checkbox" role="switch" aria-checked={bioCollectEmails} checked={bioCollectEmails} onChange={toggleCollectEmails}/>
+                          <div className="bio-toggle-track"/>
+                          <div className="bio-toggle-thumb"/>
+                        </label>
+                      </div>
+                      {bioCollectEmails && (
+                        <>
+                          <div style={{fontSize:13,color:'var(--ink2)',marginBottom:8}}>
+                            {bioSubscribersLoaded
+                              ? (lang==='ar' ? `${bioSubscribers.length} مشترك` : `${bioSubscribers.length} subscriber${bioSubscribers.length===1?'':'s'}`)
+                              : (lang==='ar'?'جارٍ التحميل...':'Loading...')}
+                          </div>
+                          <button className="btn-s" onClick={exportSubscribersCsv} disabled={bioSubscribers.length===0}>
+                            {lang==='ar'?'تصدير CSV':'Export CSV'}
+                          </button>
+                        </>
+                      )}
+                    </div>
+
                     {/* Avatar picker */}
                     <div className="card" style={{marginTop:0}}>
                       <div className="card-hd">{t.bio_avatar}</div>
@@ -1381,6 +1500,7 @@ button:focus-visible,a:focus-visible { outline:2px solid #D45A3F; outline-offset
                                 <svg viewBox="0 0 24 24" width={10} height={10} fill={plat.textColor}><path d={plat.path}/></svg>
                               </div>
                               <span style={{color:'var(--ink2)'}}>{plat.name}</span>
+                              <span style={{color:'var(--ink3)',fontSize:10.5}}>· {l.clicks ?? 0}</span>
                               <button style={{background:'none',border:'none',cursor:'pointer',color:'var(--ink3)',padding:'0 2px',fontSize:11,lineHeight:1}} onClick={() => deleteBioLink(l.id)} aria-label={`Remove ${plat.name}`}>✕</button>
                             </div>
                           )

@@ -9,7 +9,7 @@ export async function GET() {
 
   const { data } = await sb
     .from('bio_pages')
-    .select('*, bio_links(id, title, url, sort_order, is_active, platform)')
+    .select('*, bio_links(id, title, url, sort_order, is_active, platform, is_featured, clicks)')
     .eq('user_id', user.id)
     .maybeSingle()
 
@@ -56,6 +56,7 @@ export async function PATCH(req: NextRequest) {
     display_name, bio, is_published,
     accent_color, background_color, avatar_url,
     button_style, button_color, button_text_color, bg_image_url,
+    font_pairing, collect_emails,
   } = body
 
   const updates: Record<string, unknown> = { updated_at: new Date().toISOString() }
@@ -69,6 +70,8 @@ export async function PATCH(req: NextRequest) {
   if (button_color !== undefined) updates.button_color = button_color
   if (button_text_color !== undefined) updates.button_text_color = button_text_color
   if (bg_image_url !== undefined) updates.bg_image_url = bg_image_url
+  if (font_pairing !== undefined) updates.font_pairing = font_pairing
+  if (collect_emails !== undefined) updates.collect_emails = !!collect_emails
 
   const { data, error } = await sb
     .from('bio_pages')
