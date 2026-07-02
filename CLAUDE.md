@@ -384,6 +384,16 @@ In `.env.local` it is stored under BOTH `NEXT_PUBLIC_SUPABASE_ANON_KEY` and `NEX
 - ✅ Marked decorative elements `aria-hidden="true"`; signup prompt `role="dialog" aria-modal="true"`
 - ✅ Committed and pushed (commit `30348c5`)
 
+### Session 16 — SEO Audit Fixes
+- Ran `/marketing-skills:seo-audit` (static-analysis only, pre-launch, no GSC data). Found: no `public/` dir at all → `robots.txt` missing, `sitemap.xml` missing, `og.png` referenced in `layout.tsx` metadata but 404'd. Also no `metadataBase`, and `dashboard`/`auth`/`admin` (all `'use client'`, can't export metadata) had no `noindex`.
+- ✅ Added `metadataBase: new URL('https://j2z.com')` to `src/app/layout.tsx`
+- ✅ Created `src/app/opengraph-image.tsx` — dynamic OG image via `next/og` `ImageResponse` (edge runtime, brand SVG logo + wordmark), replaces the broken static `og.png` reference; removed manual `images` fields from `layout.tsx` metadata (file convention auto-injects)
+- ✅ Created `src/app/robots.ts` — allows `/`, disallows `/dashboard`, `/auth`, `/admin`, `/api`; points to sitemap
+- ✅ Created `src/app/sitemap.ts` — static routes (`/`, `/terms`, `/privacy`) + all published `bio_pages` usernames queried from Supabase (anon key, RLS-gated to `is_published = true`)
+- ✅ Added thin server `layout.tsx` (metadata-only, `robots: {index:false,follow:false}`) to `src/app/dashboard/`, `src/app/auth/`, `src/app/admin/` — none of these three had a layout before; page.tsx files untouched (still client components)
+- ✅ `npm run build` passes clean — `/robots.txt` and `/sitemap.xml` prerender static, `/opengraph-image` is edge/dynamic as expected
+- Not yet verified: OG image render at actual `j2z.com/opengraph-image` in production (Vercel edge), sitemap output once real bio pages are published
+
 ---
 
 ## What's Next (Pending Work)

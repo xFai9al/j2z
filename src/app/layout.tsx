@@ -4,6 +4,7 @@ import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://j2z.com'),
   title: 'j2z — URL Shortener',
   description: 'Shorten your URLs instantly. Generate QR codes. Track clicks.',
   openGraph: {
@@ -11,13 +12,11 @@ export const metadata: Metadata = {
     description: 'Shorten your URLs instantly. Generate QR codes. Track clicks.',
     url: 'https://j2z.com',
     siteName: 'j2z',
-    images: [{ url: 'https://j2z.com/og.png', width: 1200, height: 630 }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'j2z — URL Shortener',
     description: 'Shorten your URLs instantly. Generate QR codes. Track clicks.',
-    images: ['https://j2z.com/og.png'],
   },
 }
 
