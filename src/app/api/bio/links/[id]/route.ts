@@ -8,7 +8,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
   const { id } = await params
   const body = await req.json()
-  const { title, url } = body
+  const { title, url, is_featured } = body
 
   const updates: Record<string, unknown> = { updated_at: new Date().toISOString() }
   if (title !== undefined) updates.title = title.trim()
@@ -18,9 +18,15 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     }
     updates.url = url.trim()
   }
+  if (is_featured !== undefined) updates.is_featured = !!is_featured
 
   const { data: page } = await sb.from('bio_pages').select('id').eq('user_id', user.id).maybeSingle()
   if (!page) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  // Only one featured link per bio page — unset any other featured link first
+  if (is_featured === true) {
+    await sb.from('bio_links').update({ is_featured: false }).eq('bio_page_id', page.id).neq('id', id)
+  }
 
   const { data, error } = await sb
     .from('bio_links')

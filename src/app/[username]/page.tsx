@@ -2,6 +2,9 @@ import { notFound } from 'next/navigation'
 import { headers } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 import { PLATFORMS } from '@/lib/platforms'
+import { getFontPairing } from '@/lib/bio-fonts'
+import TrackedLink from './TrackedLink'
+import EmailCaptureForm from './EmailCaptureForm'
 import type { Metadata } from 'next'
 
 function detectLang(acceptLang: string | null): 'ar' | 'en' {
@@ -9,14 +12,24 @@ function detectLang(acceptLang: string | null): 'ar' | 'en' {
   return acceptLang.includes('ar') ? 'ar' : 'en'
 }
 
+function faviconFor(url: string): string | null {
+  try {
+    const host = new URL(url).hostname
+    return `https://www.google.com/s2/favicons?domain=${host}&sz=64`
+  } catch {
+    return null
+  }
+}
+
 interface BioLink {
-  id: string; title: string; url: string; sort_order: number; platform?: string | null; is_active: boolean
+  id: string; title: string; url: string; sort_order: number; platform?: string | null
+  is_active: boolean; is_featured?: boolean | null
 }
 interface BioPage {
   id: string; username: string; display_name: string | null; bio: string | null
   accent_color: string; background_color: string; avatar_url: string | null
   button_style?: string | null; button_color?: string | null; button_text_color?: string | null
-  bg_image_url?: string | null
+  bg_image_url?: string | null; font_pairing?: string | null; collect_emails?: boolean | null
   bio_links: BioLink[]
 }
 
@@ -24,7 +37,7 @@ async function getPage(username: string): Promise<BioPage | null> {
   const sb = await createClient()
   const { data } = await sb
     .from('bio_pages')
-    .select('id, username, display_name, bio, accent_color, background_color, avatar_url, button_style, button_color, button_text_color, bg_image_url, bio_links(id, title, url, sort_order, is_active, platform)')
+    .select('id, username, display_name, bio, accent_color, background_color, avatar_url, button_style, button_color, button_text_color, bg_image_url, font_pairing, collect_emails, bio_links(id, title, url, sort_order, is_active, platform, is_featured)')
     .eq('username', username)
     .eq('is_published', true)
     .maybeSingle()
@@ -86,6 +99,8 @@ export default async function BioPage({ params }: { params: Promise<{ username: 
   const allLinks = (page.bio_links ?? []).filter(l => l.is_active).sort((a, b) => a.sort_order - b.sort_order)
   const socialLinks = allLinks.filter(l => l.platform && PLATFORMS[l.platform])
   const customLinks = allLinks.filter(l => !l.platform)
+  const featuredLink = customLinks.find(l => l.is_featured) ?? null
+  const regularLinks = customLinks.filter(l => l.id !== featuredLink?.id)
 
   const accent = page.accent_color || '#E8765C'
   const pageBg = page.background_color || '#1A1612'
@@ -93,22 +108,24 @@ export default async function BioPage({ params }: { params: Promise<{ username: 
   const btnTextColor = page.button_text_color || ''
   const btnStyle = page.button_style || 'glass'
   const bgImage = page.bg_image_url || null
+  const fonts = getFontPairing(page.font_pairing)
 
   const isAvatarImage = page.avatar_url && page.avatar_url.startsWith('http')
   const isAvatarEmoji = page.avatar_url && !page.avatar_url.startsWith('http')
   const avatarLetter = (page.display_name || page.username)[0]?.toUpperCase() || '?'
 
   const buttonInlineStyle = getBtnStyle(btnStyle, accent, btnColor, btnTextColor)
+  const featuredStyle = getBtnStyle(btnStyle, accent, btnColor, btnTextColor)
 
   const css = `
-@import url('https://fonts.googleapis.com/css2?family=Cal+Sans&family=Space+Grotesk:wght@400;500;600;700&family=Tajawal:wght@500;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?${fonts.googleFontsQuery}&display=swap');
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
 
 body {
   min-height: 100dvh;
-  font-family: 'Space Grotesk', 'Tajawal', sans-serif;
+  font-family: ${fonts.body};
   -webkit-font-smoothing: antialiased;
   background-color: ${pageBg};
   ${bgImage ? `
@@ -156,7 +173,7 @@ ${bgImage ? `.bg-overlay {
   background: linear-gradient(135deg, ${accent} 0%, #E8C66B 100%);
   display: flex; align-items: center; justify-content: center;
   font-size: 36px; font-weight: 700; color: white;
-  font-family: 'Cal Sans', sans-serif;
+  font-family: ${fonts.display};
   box-shadow: 0 0 0 4px rgba(255,255,255,0.06), 0 0 40px ${accent}40;
   animation: avatarIn .5s cubic-bezier(0.34,1.56,0.64,1) both;
   overflow: hidden;
@@ -169,7 +186,7 @@ ${bgImage ? `.bg-overlay {
 
 /* Name / bio */
 .name {
-  text-align: center; font-family: 'Cal Sans', 'Tajawal', sans-serif;
+  text-align: center; font-family: ${fonts.display};
   font-size: 26px; font-weight: 700; color: white;
   margin-bottom: 6px; letter-spacing: -0.03em;
   animation: fadeUp .4s ease .1s both; text-wrap: balance;
@@ -201,11 +218,33 @@ ${bgImage ? `.bg-overlay {
 .social-icon:active { transform: scale(0.93); }
 .social-icon svg { display: block; }
 
+/* Featured link */
+.featured-link {
+  display: flex; align-items: center; gap: 14px;
+  width: 100%; padding: 18px 20px; margin-bottom: 14px;
+  text-decoration: none; font-family: inherit;
+  transition: opacity .18s ease, transform .18s ease;
+  cursor: pointer; touch-action: manipulation;
+  position: relative; overflow: hidden;
+}
+.featured-link:hover { opacity: 0.9; transform: translateY(-2px); }
+.featured-link:active { transform: translateY(0); opacity: .8; }
+.featured-thumb {
+  width: 44px; height: 44px; border-radius: 10px; flex-shrink: 0;
+  background: rgba(255,255,255,0.15); display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+}
+.featured-thumb img { width: 24px; height: 24px; }
+.featured-text { flex: 1; min-width: 0; text-align: left; }
+[dir=rtl] .featured-text { text-align: right; }
+.featured-tag { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.2px; opacity: 0.6; margin-bottom: 2px; }
+.featured-title { font-size: 15.5px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
 /* Custom link buttons */
 .links { display: flex; flex-direction: column; gap: 10px; width: 100%; }
 
 .link-btn {
-  display: flex; align-items: center; justify-content: space-between;
+  display: flex; align-items: center; gap: 10px;
   width: 100%; padding: 15px 20px;
   font-size: 14.5px; font-weight: 600;
   text-decoration: none;
@@ -214,18 +253,40 @@ ${bgImage ? `.bg-overlay {
   opacity: 0; animation: linkIn .35s ease forwards;
   /* button style applied inline */
 }
-${(btnStyle === 'glass') ? `.link-btn { backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }` : ''}
+.link-favicon { width: 18px; height: 18px; flex-shrink: 0; border-radius: 4px; }
+.link-btn-title { flex: 1; text-align: left; }
+[dir=rtl] .link-btn-title { text-align: right; }
+${(btnStyle === 'glass') ? `.link-btn, .featured-link { backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }` : ''}
 .link-btn:hover { opacity: 0.85; transform: translateY(-2px); }
 .link-btn:active { transform: translateY(0); opacity: .75; }
 .link-arrow {
   width: 18px; height: 18px; flex-shrink: 0;
   opacity: 0.4; transition: opacity .18s, transform .18s;
 }
-.link-btn:hover .link-arrow { opacity: 0.8; transform: translateX(2px); }
+.link-btn:hover .link-arrow, .featured-link:hover .link-arrow { opacity: 0.8; transform: translateX(2px); }
 @keyframes linkIn {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* Email capture */
+.email-capture { display: flex; gap: 8px; width: 100%; margin-top: 20px; }
+.email-capture-input {
+  flex: 1; min-width: 0; padding: 13px 14px; border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.06);
+  color: white; font-size: 14px; font-family: inherit; outline: none;
+}
+.email-capture-input::placeholder { color: rgba(255,255,255,0.4); }
+.email-capture-input:focus { border-color: ${accent}; }
+.email-capture-btn {
+  padding: 13px 18px; border-radius: 12px; border: none; background: ${accent};
+  color: white; font-weight: 700; font-size: 13.5px; cursor: pointer; font-family: inherit;
+  white-space: nowrap; transition: opacity .15s;
+}
+.email-capture-btn:hover { opacity: 0.9; }
+.email-capture-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.email-capture-error { width: 100%; font-size: 12px; color: #FF9B85; margin-top: 6px; }
+.email-capture-sent { margin-top: 20px; font-size: 13px; color: rgba(255,255,255,0.6); }
 
 /* Footer */
 .footer-cta {
@@ -298,14 +359,12 @@ ${(btnStyle === 'glass') ? `.link-btn { backdrop-filter: blur(12px); -webkit-bac
                 const plat = PLATFORMS[l.platform!]
                 if (!plat) return null
                 return (
-                  <a
+                  <TrackedLink
                     key={l.id}
+                    id={l.id}
                     className="social-icon"
                     href={l.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    role="listitem"
-                    aria-label={`${plat.name}: ${l.title || plat.name}`}
+                    ariaLabel={`${plat.name}: ${l.title || plat.name}`}
                     style={{
                       background: plat.color,
                       animationDelay: `${0.2 + i * 0.04}s`,
@@ -316,34 +375,56 @@ ${(btnStyle === 'glass') ? `.link-btn { backdrop-filter: blur(12px); -webkit-bac
                     <svg viewBox="0 0 24 24" width={22} height={22} fill={plat.textColor} aria-hidden="true">
                       <path d={plat.path}/>
                     </svg>
-                  </a>
+                  </TrackedLink>
                 )
               })}
             </div>
           )}
 
-          {customLinks.length > 0 && (
+          {featuredLink && (
+            <TrackedLink id={featuredLink.id} href={featuredLink.url} className="featured-link" style={featuredStyle}>
+              {faviconFor(featuredLink.url) && (
+                <div className="featured-thumb">
+                  <img src={faviconFor(featuredLink.url)!} alt="" width={24} height={24}/>
+                </div>
+              )}
+              <div className="featured-text">
+                <div className="featured-tag">{lang === 'ar' ? 'مميز' : 'Featured'}</div>
+                <div className="featured-title">{featuredLink.title}</div>
+              </div>
+              <svg className="link-arrow" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M4 10h12M10 4l6 6-6 6"/>
+              </svg>
+            </TrackedLink>
+          )}
+
+          {regularLinks.length > 0 && (
             <nav className="links" aria-label="Profile links">
-              {customLinks.map((l, i) => (
-                <a
-                  key={l.id}
-                  className="link-btn"
-                  href={l.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{
-                    ...buttonInlineStyle,
-                    animationDelay: `${0.25 + i * 0.06}s`,
-                  }}
-                >
-                  <span>{l.title}</span>
-                  <svg className="link-arrow" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                    <path d="M4 10h12M10 4l6 6-6 6"/>
-                  </svg>
-                </a>
-              ))}
+              {regularLinks.map((l, i) => {
+                const favicon = faviconFor(l.url)
+                return (
+                  <TrackedLink
+                    key={l.id}
+                    id={l.id}
+                    className="link-btn"
+                    href={l.url}
+                    style={{
+                      ...buttonInlineStyle,
+                      animationDelay: `${0.25 + i * 0.06}s`,
+                    }}
+                  >
+                    {favicon && <img className="link-favicon" src={favicon} alt="" width={18} height={18}/>}
+                    <span className="link-btn-title">{l.title}</span>
+                    <svg className="link-arrow" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <path d="M4 10h12M10 4l6 6-6 6"/>
+                    </svg>
+                  </TrackedLink>
+                )
+              })}
             </nav>
           )}
+
+          {page.collect_emails && <EmailCaptureForm username={page.username} lang={lang}/>}
 
           <div className="footer-cta">
             <p className="footer-cta-text">j2z.com/{page.username}</p>

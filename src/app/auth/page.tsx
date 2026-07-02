@@ -230,7 +230,7 @@ body{background:var(--paper);color:var(--ink);font-family:'Space Grotesk','Tajaw
 .lang-btn:hover{background:var(--warm);}
 .form-area{flex:1;display:flex;flex-direction:column;justify-content:center;max-width:380px;width:100%;margin:0 auto;animation:fadeUp .3s ease;}
 @keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
-.form-headline{font-family:'Cal Sans','Tajawal',sans-serif;font-size:clamp(26px,4vw,34px);font-weight:700;letter-spacing:-.03em;margin-bottom:6px;line-height:1.1;}
+.form-headline{font-family:'Cal Sans','Tajawal',sans-serif;font-size:clamp(26px,4vw,34px);font-weight:700;letter-spacing:-.03em;margin-bottom:6px;line-height:1.1;text-wrap:balance;}
 .form-sub{font-size:15px;color:var(--ink-soft);margin-bottom:28px;}
 .oauth-stack{display:flex;flex-direction:column;gap:10px;margin-bottom:22px;}
 .oauth-btn{display:flex;align-items:center;justify-content:center;gap:10px;padding:13px 20px;background:white;border:1.5px solid var(--border);border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;color:var(--ink);transition:all .2s;position:relative;overflow:hidden;min-height:48px;}
@@ -280,7 +280,7 @@ body{background:var(--paper);color:var(--ink);font-family:'Space Grotesk','Tajaw
 .right-inner{position:relative;z-index:1;}
 .right-logo{display:flex;align-items:center;gap:10px;margin-bottom:48px;}
 .right-logo-name{font-family:'Space Grotesk',sans-serif;font-size:26px;font-weight:700;color:white;letter-spacing:-.04em;}
-.right-headline{font-family:'Cal Sans','Tajawal',sans-serif;font-size:clamp(22px,2.8vw,32px);font-weight:700;color:white;line-height:1.2;letter-spacing:-.02em;margin-bottom:40px;}
+.right-headline{font-family:'Cal Sans','Tajawal',sans-serif;font-size:clamp(22px,2.8vw,32px);font-weight:700;color:white;line-height:1.2;letter-spacing:-.02em;margin-bottom:40px;text-wrap:balance;}
 .right-headline em{font-style:normal;color:var(--coral-light);}
 .benefit-list{display:flex;flex-direction:column;gap:22px;}
 .benefit-item{display:flex;align-items:flex-start;gap:14px;}

@@ -1,5 +1,5 @@
 'use client'
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, type ReactNode } from 'react'
 import QRCode from 'qrcode'
 
 // ── Static components moved outside to avoid recreation on every render ───────
@@ -58,6 +58,26 @@ const BioAvatarIcon = () => (
     <path d="M4 20c0-3.866 3.582-7 8-7s8 3.134 8 7"/>
   </svg>
 )
+
+// ── Scroll-reveal wrapper for below-the-fold sections ─────────────────────────
+function Reveal({ children, className = '', delay = 0 }: { children: ReactNode; className?: string; delay?: number }) {
+  const ref = useRef<HTMLDivElement>(null)
+  const [visible, setVisible] = useState(false)
+  useEffect(() => {
+    const el = ref.current
+    if (!el || typeof IntersectionObserver === 'undefined') { setVisible(true); return }
+    const obs = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) { setVisible(true); obs.disconnect() }
+    }, { threshold: 0.15 })
+    obs.observe(el)
+    return () => obs.disconnect()
+  }, [])
+  return (
+    <div ref={ref} className={`reveal ${visible ? 'is-visible' : ''} ${className}`} style={{ transitionDelay: `${delay}ms` }}>
+      {children}
+    </div>
+  )
+}
 
 // ── Static translation data outside component ─────────────────────────────────
 
@@ -258,9 +278,17 @@ body{background:var(--paper);color:var(--ink);font-family:'Space Grotesk','Tajaw
 .btn-signin:hover{color:var(--coral-deep);}
 .btn-signup{padding:0 18px;background:var(--ink);color:white;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s;min-height:44px;display:inline-flex;align-items:center;}
 .btn-signup:hover{background:var(--coral-deep);transform:translateY(-1px);}
-.hero{padding:48px 20px 32px;text-align:center;position:relative;overflow:hidden;}
-.hero::before{content:'';position:absolute;top:-100px;left:50%;transform:translateX(-50%);width:800px;height:500px;background:radial-gradient(ellipse,rgba(232,118,92,.08) 0%,transparent 60%);pointer-events:none;z-index:0;}
-.hero-inner{max-width:780px;margin:0 auto;position:relative;z-index:1;}
+.hero{padding:56px 20px 40px;text-align:center;position:relative;overflow:hidden;}
+.hero::before{content:'';position:absolute;top:-140px;right:-60px;width:620px;height:520px;background:radial-gradient(ellipse,rgba(232,118,92,.10) 0%,transparent 62%);pointer-events:none;z-index:0;}
+.hero::after{content:'';position:absolute;bottom:-160px;left:-100px;width:480px;height:420px;background:radial-gradient(ellipse,rgba(232,198,107,.10) 0%,transparent 65%);pointer-events:none;z-index:0;}
+[dir=rtl] .hero::before{right:auto;left:-60px;}
+[dir=rtl] .hero::after{left:auto;right:-100px;}
+.hero-inner{max-width:780px;margin:0 auto;position:relative;z-index:1;opacity:0;animation:heroIn .7s cubic-bezier(.16,1,.3,1) .05s forwards;}
+@keyframes heroIn{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+.hero h1,.section h2,.bio-text h3,.cta h2{text-wrap:balance;}
+.grain-overlay{position:fixed;inset:0;pointer-events:none;z-index:5;opacity:.035;mix-blend-mode:multiply;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");}
+.reveal{opacity:0;transform:translateY(18px);transition:opacity .6s cubic-bezier(.16,1,.3,1),transform .6s cubic-bezier(.16,1,.3,1);}
+.reveal.is-visible{opacity:1;transform:translateY(0);}
 .hero-badge{display:inline-flex;align-items:center;gap:6px;background:var(--coral-soft);color:var(--coral-deep);padding:6px 14px;border-radius:100px;font-size:12.5px;font-weight:600;margin-bottom:20px;border:1px solid rgba(232,118,92,.15);}
 .hero h1{font-family:'Cal Sans','Tajawal',sans-serif;font-size:clamp(38px,6.5vw,64px);font-weight:700;line-height:1;letter-spacing:-.04em;margin-bottom:16px;}
 .hero h1 em{font-style:normal;color:var(--coral-deep);position:relative;display:inline-block;}
@@ -291,11 +319,14 @@ body{background:var(--paper);color:var(--ink);font-family:'Space Grotesk','Tajaw
 .hero-trust{margin-top:18px;display:flex;gap:14px;justify-content:center;flex-wrap:wrap;}
 .trust-item{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--ink-soft);font-weight:500;}
 .trust-item .check{color:var(--sage);font-weight:700;}
-.section{padding:40px 20px;}.section-dark{background:var(--ink);color:white;padding:50px 20px;}.section-cream{background:var(--cream);}.section-sage{background:var(--sage-soft);}
+.section{padding:56px 20px;}.section-dark{background:var(--ink);color:white;padding:64px 20px;}.section-cream{background:var(--cream);}
+.section-warm{background:linear-gradient(180deg,var(--cream) 0%,var(--paper) 100%);}
 .section-inner{max-width:1040px;margin:0 auto;}
-.section-head{text-align:center;margin-bottom:24px;}
-.section-tag{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;letter-spacing:2px;color:var(--coral-deep);background:var(--coral-soft);padding:5px 11px;border-radius:6px;margin-bottom:10px;text-transform:uppercase;}
-.section-dark .section-tag{background:rgba(232,118,92,.2);color:var(--coral-light);}
+.section-head{text-align:center;margin-bottom:28px;}
+.section-tag{display:inline-flex;align-items:center;gap:8px;font-size:11px;font-weight:700;letter-spacing:2px;color:var(--coral-deep);margin-bottom:12px;text-transform:uppercase;}
+.section-tag::before{content:'';width:20px;height:2px;background:var(--coral-deep);display:inline-block;}
+.section-dark .section-tag{color:var(--coral-light);}
+.section-dark .section-tag::before{background:var(--coral-light);}
 .section h2{font-family:'Cal Sans','Tajawal',sans-serif;font-size:clamp(26px,3.8vw,38px);font-weight:700;line-height:1.1;letter-spacing:-.03em;margin-bottom:8px;}
 .section-sub{font-size:15px;color:var(--ink-soft);max-width:520px;margin:0 auto;line-height:1.55;}
 .section-dark .section-sub{color:rgba(255,255,255,.7);}
@@ -407,6 +438,7 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--coral);outline-offs
     <>
       <style dangerouslySetInnerHTML={{__html: css}} suppressHydrationWarning/>
       <div dir={dir}>
+        <div className="grain-overlay" aria-hidden="true"/>
         {linkNotFound && (
           <div className="notfound-bar" role="alert">
             <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round"><circle cx="10" cy="10" r="8"/><line x1="10" y1="6" x2="10" y2="10"/><line x1="10" y1="14" x2="10" y2="14"/></svg>
@@ -519,7 +551,7 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--coral);outline-offs
         </div>
 
         <section className="section section-cream" id="qr">
-          <div className="section-inner">
+          <Reveal className="section-inner">
             <div className="section-head">
               <div className="section-tag"><QRIcon s={12} color="#D45A3F"/><span>{t.qr_tag}</span></div>
               <h2>{t.qr_title}</h2>
@@ -560,11 +592,11 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--coral);outline-offs
               )}
               <div className="qr-tip">{t.qr_tip}</div>
             </div>
-          </div>
+          </Reveal>
         </section>
 
-        <section className="section section-sage" id="bio">
-          <div className="section-inner">
+        <section className="section section-warm" id="bio">
+          <Reveal className="section-inner">
             <div className="section-head">
               <div className="section-tag">{t.bio_tag}</div>
               <h2>{t.bio_title}</h2>
@@ -591,11 +623,11 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--coral);outline-offs
                 <div className="bio-url-tag">j2z.com/<strong>{lang === 'en' ? 'yourname' : 'اسمك'}</strong></div>
               </div>
             </div>
-          </div>
+          </Reveal>
         </section>
 
         <section className="section section-dark">
-          <div className="section-inner hero-feat">
+          <Reveal className="section-inner hero-feat">
             <div className="section-tag">{t.hero_feat_tag}</div>
             <h2>{t.hero_feat_title_1} <em>{t.hero_feat_title_2}</em></h2>
             <p className="section-sub">{t.hero_feat_sub}</p>
@@ -609,18 +641,18 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--coral);outline-offs
                 <h4>{t.feat_2_title}</h4><p>{t.feat_2_desc}</p>
               </div>
             </div>
-          </div>
+          </Reveal>
         </section>
 
         <section className="cta" id="cta">
-          <div className="cta-inner">
+          <Reveal className="cta-inner">
             <h2>{t.cta_title}</h2>
             <p>{t.cta_sub}</p>
             <button className="cta-btn" onClick={() => setShowSignupPrompt(true)}>{t.cta_btn} →</button>
             <div className="cta-consent">
               {t.consent_signup_1} <a href="/terms">{t.consent_terms}</a> {t.consent_and} <a href="/privacy">{t.consent_privacy}</a>.
             </div>
-          </div>
+          </Reveal>
         </section>
 
         <footer className="footer">
