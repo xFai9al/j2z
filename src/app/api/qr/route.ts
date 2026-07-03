@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { createServerClient } from '@supabase/ssr'
 import { generateSlug, isValidUrl, ensureHttps } from '@/lib/utils'
+import { isUrlBlocked } from '@/lib/blocklist'
 import { NextRequest, NextResponse } from 'next/server'
 
 function makeServiceClient() {
@@ -28,16 +29,29 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const slug = `qr-${generateSlug(4)}`
   const service = makeServiceClient()
 
-  const { data, error } = await service
+  if (await isUrlBlocked(originalUrl, service)) {
+    return NextResponse.json({ error: 'This URL is not allowed' }, { status: 403 })
+  }
+
+  // Retry once on slug collision (4-char slugs can collide)
+  let result = await service
     .from('qr_codes')
-    .insert({ slug, destination_url: originalUrl, user_id: sessionData.user.id })
+    .insert({ slug: `qr-${generateSlug(4)}`, destination_url: originalUrl, user_id: sessionData.user.id })
     .select()
     .single()
 
-  if (error) {
+  if (result.error?.code === '23505') {
+    result = await service
+      .from('qr_codes')
+      .insert({ slug: `qr-${generateSlug(4)}`, destination_url: originalUrl, user_id: sessionData.user.id })
+      .select()
+      .single()
+  }
+
+  const { data, error } = result
+  if (error || !data) {
     return NextResponse.json({ error: 'Failed to create QR code' }, { status: 500 })
   }
 

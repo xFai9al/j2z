@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { isValidUrl, ensureHttps } from '@/lib/utils'
+import { isUrlBlocked } from '@/lib/blocklist'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
@@ -37,6 +38,10 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   const { data: sessionData } = await supabase.auth.getUser()
   if (!sessionData?.user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  if (await isUrlBlocked(url, supabase)) {
+    return NextResponse.json({ error: 'This URL is not allowed' }, { status: 403 })
   }
 
   const { error } = await supabase

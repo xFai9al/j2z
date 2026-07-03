@@ -434,12 +434,10 @@ export default function Dashboard() {
         setLinks(p => [{ id: data.id ?? String(Date.now()), slug: data.slug ?? slug, url: u, clicks: 0, created: new Date().toISOString().slice(0, 10) }, ...p])
         setNewUrl('')
         setNewSlug('')
+      } else {
+        window.alert(data.error ?? 'Failed to create link')
       }
-    } catch {
-      setLinks(p => [{ id: String(Date.now()), slug, url: u, clicks: 0, created: new Date().toISOString().slice(0, 10) }, ...p])
-      setNewUrl('')
-      setNewSlug('')
-    }
+    } catch {}
   }
 
   const addQR = async () => {

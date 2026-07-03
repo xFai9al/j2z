@@ -2,6 +2,8 @@ import { createClient } from '@/lib/supabase/server'
 import { createServerClient } from '@supabase/ssr'
 import { generateSlug, isValidUrl, ensureHttps } from '@/lib/utils'
 import { checkAnonLinkLimit } from '@/lib/anon-limit'
+import { isUrlBlocked } from '@/lib/blocklist'
+import { RESERVED } from '@/lib/constants'
 import { NextRequest, NextResponse } from 'next/server'
 
 function makeServiceClient() {
@@ -26,14 +28,21 @@ export async function POST(req: NextRequest) {
   const rawSlug = (body.slug ?? body.customSlug ?? '').trim().replace(/[^a-zA-Z0-9-_]/g, '')
   const service = makeServiceClient()
 
-  if (rawSlug) {
-    const { data: existing } = await service
-      .from('links')
-      .select('id')
-      .eq('slug', rawSlug)
-      .maybeSingle()
+  if (await isUrlBlocked(originalUrl, service)) {
+    return NextResponse.json({ error: 'This URL is not allowed' }, { status: 403 })
+  }
 
-    if (existing) {
+  if (rawSlug) {
+    if (RESERVED.has(rawSlug.toLowerCase())) {
+      return NextResponse.json({ error: 'This alias is reserved' }, { status: 400 })
+    }
+    const [{ data: existingLink }, { data: existingQr }, { data: existingBio }] = await Promise.all([
+      service.from('links').select('id').eq('slug', rawSlug).maybeSingle(),
+      service.from('qr_codes').select('id').eq('slug', rawSlug).maybeSingle(),
+      service.from('bio_pages').select('id').eq('username', rawSlug).maybeSingle(),
+    ])
+
+    if (existingLink || existingQr || existingBio) {
       return NextResponse.json({ error: 'This alias is already taken' }, { status: 409 })
     }
   }

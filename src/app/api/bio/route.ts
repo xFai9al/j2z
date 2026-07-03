@@ -1,6 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { RESERVED } from '@/lib/constants'
+import { FONT_PAIRINGS } from '@/lib/bio-fonts'
+
+const HEX_COLOR = /^#[0-9a-fA-F]{3,8}$/
+const BUTTON_STYLES = new Set(['glass', 'fill', 'outline', 'pill', 'pill-outline', 'soft'])
+const FONT_IDS = new Set(FONT_PAIRINGS.map(f => f.id))
+
+/** Valid hex color, or null to clear. Returns undefined if invalid. */
+function cleanColor(v: unknown): string | null | undefined {
+  if (v === null || v === '') return null
+  if (typeof v === 'string' && HEX_COLOR.test(v)) return v
+  return undefined
+}
+
+/** http(s) URL up to 500 chars, or null to clear. Returns undefined if invalid. */
+function cleanUrl(v: unknown): string | null | undefined {
+  if (v === null || v === '') return null
+  if (typeof v !== 'string' || v.length > 500) return undefined
+  try {
+    const u = new URL(v)
+    if (u.protocol === 'http:' || u.protocol === 'https:') return v
+  } catch {}
+  return undefined
+}
 
 export async function GET() {
   const sb = await createClient()
@@ -60,17 +83,62 @@ export async function PATCH(req: NextRequest) {
   } = body
 
   const updates: Record<string, unknown> = { updated_at: new Date().toISOString() }
-  if (display_name !== undefined) updates.display_name = display_name
-  if (bio !== undefined) updates.bio = bio
-  if (is_published !== undefined) updates.is_published = is_published
-  if (accent_color !== undefined) updates.accent_color = accent_color
-  if (background_color !== undefined) updates.background_color = background_color
-  if (avatar_url !== undefined) updates.avatar_url = avatar_url
-  if (button_style !== undefined) updates.button_style = button_style
-  if (button_color !== undefined) updates.button_color = button_color
-  if (button_text_color !== undefined) updates.button_text_color = button_text_color
-  if (bg_image_url !== undefined) updates.bg_image_url = bg_image_url
-  if (font_pairing !== undefined) updates.font_pairing = font_pairing
+  if (display_name !== undefined) {
+    updates.display_name = display_name === null ? null : String(display_name).slice(0, 60)
+  }
+  if (bio !== undefined) {
+    updates.bio = bio === null ? null : String(bio).slice(0, 160)
+  }
+  if (is_published !== undefined) updates.is_published = !!is_published
+  if (accent_color !== undefined) {
+    const v = cleanColor(accent_color)
+    if (v === undefined) return NextResponse.json({ error: 'Invalid accent color' }, { status: 400 })
+    updates.accent_color = v
+  }
+  if (background_color !== undefined) {
+    const v = cleanColor(background_color)
+    if (v === undefined) return NextResponse.json({ error: 'Invalid background color' }, { status: 400 })
+    updates.background_color = v
+  }
+  if (avatar_url !== undefined) {
+    // Emoji avatar (short non-URL string) or an http(s) image URL
+    if (avatar_url === null || avatar_url === '') {
+      updates.avatar_url = null
+    } else if (typeof avatar_url === 'string' && !avatar_url.startsWith('http') && avatar_url.length <= 16) {
+      updates.avatar_url = avatar_url
+    } else {
+      const v = cleanUrl(avatar_url)
+      if (v === undefined) return NextResponse.json({ error: 'Invalid avatar URL' }, { status: 400 })
+      updates.avatar_url = v
+    }
+  }
+  if (button_style !== undefined) {
+    if (button_style !== null && !BUTTON_STYLES.has(button_style)) {
+      return NextResponse.json({ error: 'Invalid button style' }, { status: 400 })
+    }
+    updates.button_style = button_style
+  }
+  if (button_color !== undefined) {
+    const v = cleanColor(button_color)
+    if (v === undefined) return NextResponse.json({ error: 'Invalid button color' }, { status: 400 })
+    updates.button_color = v
+  }
+  if (button_text_color !== undefined) {
+    const v = cleanColor(button_text_color)
+    if (v === undefined) return NextResponse.json({ error: 'Invalid button text color' }, { status: 400 })
+    updates.button_text_color = v
+  }
+  if (bg_image_url !== undefined) {
+    const v = cleanUrl(bg_image_url)
+    if (v === undefined) return NextResponse.json({ error: 'Invalid background image URL' }, { status: 400 })
+    updates.bg_image_url = v
+  }
+  if (font_pairing !== undefined) {
+    if (font_pairing !== null && !FONT_IDS.has(font_pairing)) {
+      return NextResponse.json({ error: 'Invalid font pairing' }, { status: 400 })
+    }
+    updates.font_pairing = font_pairing
+  }
   if (collect_emails !== undefined) updates.collect_emails = !!collect_emails
 
   const { data, error } = await sb

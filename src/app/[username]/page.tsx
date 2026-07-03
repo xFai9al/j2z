@@ -12,6 +12,23 @@ function detectLang(acceptLang: string | null): 'ar' | 'en' {
   return acceptLang.includes('ar') ? 'ar' : 'en'
 }
 
+const HEX_COLOR = /^#[0-9a-fA-F]{3,8}$/
+/** Only allow hex colors into the inline <style> block. */
+function safeColor(v: string | null | undefined, fallback: string): string {
+  return v && HEX_COLOR.test(v) ? v : fallback
+}
+/** Only allow http(s) URLs into the CSS url(), with quote/paren chars encoded. */
+function safeCssUrl(v: string | null | undefined): string | null {
+  if (!v) return null
+  try {
+    const u = new URL(v)
+    if (u.protocol !== 'http:' && u.protocol !== 'https:') return null
+    return u.toString().replace(/['"()\\<>]/g, c => encodeURIComponent(c))
+  } catch {
+    return null
+  }
+}
+
 function faviconFor(url: string): string | null {
   try {
     const host = new URL(url).hostname
@@ -102,12 +119,12 @@ export default async function BioPage({ params }: { params: Promise<{ username: 
   const featuredLink = customLinks.find(l => l.is_featured) ?? null
   const regularLinks = customLinks.filter(l => l.id !== featuredLink?.id)
 
-  const accent = page.accent_color || '#E8765C'
-  const pageBg = page.background_color || '#1A1612'
-  const btnColor = page.button_color || ''
-  const btnTextColor = page.button_text_color || ''
+  const accent = safeColor(page.accent_color, '#E8765C')
+  const pageBg = safeColor(page.background_color, '#1A1612')
+  const btnColor = safeColor(page.button_color, '')
+  const btnTextColor = safeColor(page.button_text_color, '')
   const btnStyle = page.button_style || 'glass'
-  const bgImage = page.bg_image_url || null
+  const bgImage = safeCssUrl(page.bg_image_url)
   const fonts = getFontPairing(page.font_pairing)
 
   const isAvatarImage = page.avatar_url && page.avatar_url.startsWith('http')

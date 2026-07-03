@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { isUrlBlocked } from '@/lib/blocklist'
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const sb = await createClient()
@@ -11,10 +12,18 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const { title, url, is_featured } = body
 
   const updates: Record<string, unknown> = { updated_at: new Date().toISOString() }
-  if (title !== undefined) updates.title = title.trim()
+  if (title !== undefined) {
+    if (typeof title !== 'string' || !title.trim()) {
+      return NextResponse.json({ error: 'Title required' }, { status: 400 })
+    }
+    updates.title = title.trim()
+  }
   if (url !== undefined) {
-    if (!/^https?:\/\/.+/.test(url.trim())) {
-      return NextResponse.json({ error: 'URL must start with https://' }, { status: 400 })
+    if (typeof url !== 'string' || !/^https?:\/\/.+/.test(url.trim())) {
+      return NextResponse.json({ error: 'URL must start with http:// or https://' }, { status: 400 })
+    }
+    if (await isUrlBlocked(url.trim(), sb)) {
+      return NextResponse.json({ error: 'This URL is not allowed' }, { status: 403 })
     }
     updates.url = url.trim()
   }

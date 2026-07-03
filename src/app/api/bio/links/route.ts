@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { isUrlBlocked } from '@/lib/blocklist'
 
 export async function POST(req: NextRequest) {
   const sb = await createClient()
@@ -7,11 +8,14 @@ export async function POST(req: NextRequest) {
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { title, url, platform } = await req.json()
-  if (!title?.trim() || !url?.trim()) {
+  if (typeof title !== 'string' || typeof url !== 'string' || !title.trim() || !url.trim()) {
     return NextResponse.json({ error: 'Title and URL required' }, { status: 400 })
   }
   if (!/^https?:\/\/.+/.test(url.trim())) {
-    return NextResponse.json({ error: 'URL must start with https://' }, { status: 400 })
+    return NextResponse.json({ error: 'URL must start with http:// or https://' }, { status: 400 })
+  }
+  if (await isUrlBlocked(url.trim(), sb)) {
+    return NextResponse.json({ error: 'This URL is not allowed' }, { status: 403 })
   }
 
   const { data: page } = await sb

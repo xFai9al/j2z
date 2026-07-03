@@ -196,7 +196,12 @@ ALTER TABLE clicks ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "clicks_owner_view" ON clicks FOR SELECT USING (
   (resource_type = 'link' AND EXISTS (SELECT 1 FROM links WHERE links.id = clicks.resource_id AND links.user_id = auth.uid()))
   OR (resource_type = 'qr' AND EXISTS (SELECT 1 FROM qr_codes WHERE qr_codes.id = clicks.resource_id AND qr_codes.user_id = auth.uid()))
-  OR (resource_type IN ('bio','bio_link') AND EXISTS (SELECT 1 FROM bio_pages WHERE bio_pages.id = clicks.resource_id AND bio_pages.user_id = auth.uid()))
+  OR (resource_type = 'bio' AND EXISTS (SELECT 1 FROM bio_pages WHERE bio_pages.id = clicks.resource_id AND bio_pages.user_id = auth.uid()))
+  OR (resource_type = 'bio_link' AND EXISTS (
+    SELECT 1 FROM bio_links
+    JOIN bio_pages ON bio_pages.id = bio_links.bio_page_id
+    WHERE bio_links.id = clicks.resource_id AND bio_pages.user_id = auth.uid()
+  ))
 );
 
 ALTER TABLE anon_usage ENABLE ROW LEVEL SECURITY;

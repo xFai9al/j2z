@@ -67,6 +67,7 @@ export async function middleware(request: NextRequest) {
         p_user_agent: userAgent,
       }).then(({ error }) => {
         if (error) {
+          // .then() forces the PostgREST builder to actually execute
           sb.from('clicks').insert({
             resource_type: 'link',
             resource_id: link.id,
@@ -74,10 +75,11 @@ export async function middleware(request: NextRequest) {
             device_type: deviceType,
             referrer,
             user_agent: userAgent,
-          })
+          }).then(() => {})
         }
       })
-      const res = NextResponse.redirect(link.destination_url, 301)
+      // 302 not 301: destinations are editable, browsers cache 301 forever
+      const res = NextResponse.redirect(link.destination_url, 302)
       res.headers.set('Cache-Control', 'public, max-age=300, stale-while-revalidate=3600')
       return res
     }
@@ -100,10 +102,10 @@ export async function middleware(request: NextRequest) {
             device_type: deviceType,
             referrer,
             user_agent: userAgent,
-          })
+          }).then(() => {})
         }
       })
-      const res = NextResponse.redirect(qr.destination_url, 301)
+      const res = NextResponse.redirect(qr.destination_url, 302)
       res.headers.set('Cache-Control', 'public, max-age=300, stale-while-revalidate=3600')
       return res
     }
