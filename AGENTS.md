@@ -394,6 +394,19 @@ In `.env.local` it is stored under BOTH `NEXT_PUBLIC_SUPABASE_ANON_KEY` and `NEX
 - ✅ `npm run build` passes clean — `/robots.txt` and `/sitemap.xml` prerender static, `/opengraph-image` is edge/dynamic as expected
 - Not yet verified: OG image render at actual `j2z.com/opengraph-image` in production (Vercel edge), sitemap output once real bio pages are published
 
+### Session 22 — slop.md Design System Pass
+- ✅ Read and applied the complete global `pols.dev/slop.md` anti-slop design law across the product UI.
+- ✅ Landing page redesigned around a product-first asymmetric composition: the real shortener is the hero artifact, the fold is fully composed, and fake/unverified stats were removed from view.
+- ✅ Removed visible generic patterns: hero pill, kicker labels/ticks, entrance content hiding, radial glow blobs, candy CTA gradient, broad card shadows, hover lifts, rounded-everything styling, and decorative stat accent bars.
+- ✅ Established one coherent visual language: warm printed-paper surface, deep ink, quiet tonal coral, square/chamfer-like geometry, terse labels, and restrained directional depth.
+- ✅ QR, bio, comparison, FAQ, CTA, and footer sections now use distinct compositions rather than repeating label-over-heading/card templates.
+- ✅ Auth page redesigned with architectural split composition, bare benefit icons, a bespoke route rail, tonal controls, and no icon tiles/hover boops.
+- ✅ Dashboard/admin cleaned into utility-first interfaces: removed decorative card chrome, stat accent bars, generic shadows/lifts, and replaced the header sun/moon toggle with a single contrast glyph.
+- ✅ Public bio pages retain user customization but no longer default to glow, entrance hiding, hover lift/scale, or fixed-background behavior.
+- ✅ Error/404 hover boops removed. Development CSP now permits React's dev-only eval while production CSP remains strict.
+- ✅ Browser QA: desktop landing/auth visually inspected; 390px mobile landing/auth inspected; horizontal overflow fixed; auth marketing panel correctly hidden on mobile; language toggle and FAQ interaction verified by real clicks; RTL confirmed.
+- ✅ Verification: `npm run build` ✓, TypeScript ✓, ESLint ✓, Vitest 3/3 ✓, `git diff --check` ✓.
+
 ### Session 21 — Technical Audit Remediation
 - ✅ Upgraded production stack to Next.js 16.2.10 + React 19.2 and migrated middleware to the Next 16 `proxy.ts` convention.
 - ✅ Upgraded ESLint to v9 with flat config, added Vitest, and added the first automated URL/slug utility tests.

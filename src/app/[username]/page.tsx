@@ -326,6 +326,16 @@ ${(btnStyle === 'glass') ? `.link-btn, .featured-link { backdrop-filter: blur(12
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }
+
+/* slop.md pass: user theme remains expressive without generic glow/lift defaults */
+.bio-shell { font-family: system-ui,-apple-system,'Segoe UI','Tajawal',sans-serif; background-attachment: scroll; }
+.avi { box-shadow: none; animation: none; }
+.name,.bio-text,.social-row { animation: none; }
+.social-icon:hover { transform: none; filter: brightness(1.1); }
+.featured-link:hover,.link-btn:hover { transform: none; }
+.link-btn { opacity: 1; animation: none; }
+.footer-cta-btn { border-radius: 3px; }
+.email-capture-input,.email-capture-btn { border-radius: 3px; }
 `
 
   return (

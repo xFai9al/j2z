@@ -126,6 +126,12 @@ const IcoMoon = ({ s=16, c='currentColor' }: {s?:number;c?:string}) => (
     <path d="M16.5 11.5A7 7 0 018.5 3.5a7 7 0 100 13 7 7 0 008-5z"/>
   </svg>
 )
+const IcoContrast = ({ s=17, c='currentColor' }: {s?:number;c?:string}) => (
+  <svg viewBox="0 0 20 20" width={s} height={s} fill="none" aria-hidden="true">
+    <circle cx="10" cy="10" r="7" stroke={c} strokeWidth="1.7"/>
+    <path d="M10 3a7 7 0 0 1 0 14V3Z" fill={c}/>
+  </svg>
+)
 const IcoCursor = ({ s=15, c='currentColor' }: {s?:number;c?:string}) => (
   <svg viewBox="0 0 20 20" width={s} height={s} fill={c}>
     <path d="M4 2.5l11 7-6.5.5-2.5 6.5L4 2.5z"/>
@@ -962,6 +968,32 @@ button:focus-visible,a:focus-visible { outline:2px solid #D45A3F; outline-offset
 .skel-logo { animation: skelPulse 1.4s ease-in-out infinite; }
 @keyframes skelPulse { 0%,100%{opacity:.4;} 50%{opacity:1;} }
 .skel-bar { height:8px; border-radius:4px; background:#E8E2D6; animation: skelPulse 1.4s ease-in-out infinite; }
+
+/* slop.md pass: utility-first, tonal, no decorative card chrome */
+body{font-family:system-ui,-apple-system,'Segoe UI','Tajawal',sans-serif;}
+.stat-card::before{display:none!important;}
+.stat-card,.card,.chart-card,.table-card,.bio-create-box,.bio-stat-row,.bio-toggle-row,.bio-lnk-row,.danger-box{box-shadow:none!important;border-radius:3px!important;}
+.stat-card{border:0!important;border-top:2px solid var(--border)!important;background:var(--surface)!important;}
+.stat-card:hover,.qr-card:hover{transform:none!important;box-shadow:none!important;}
+.bc-bar:hover{transform:none!important;box-shadow:none!important;}
+.go-btn:hover{transform:none!important;}
+.stat-ico,.ico-wrap{background:transparent!important;border:0!important;border-radius:0!important;}
+.theme-btn{border:0;border-radius:0;background:transparent;}
+.theme-btn:hover{border-color:transparent;background:var(--hover);}
+.nav-item{border-radius:2px;}
+.nav-item.active{background:var(--surface2);color:var(--ink);font-weight:750;}
+.nav-item.active svg{color:#9F4936;}
+.tool-btn,.save-btn,.bio-edit,.danger-btn,.btn-s{border-radius:3px!important;box-shadow:none!important;}
+.tool-btn,.save-btn,.bio-edit{background:var(--ink);}
+.tool-btn:hover,.save-btn:hover,.bio-edit:hover{background:var(--ink2);transform:none;}
+.bio-mock{border-radius:3px;background:#2F2A24;}
+.bio-mock-glow{display:none;}
+.bio-lbtn{border:0;border-radius:2px;background:#443B34;}
+.f-in,.bio-field input,.bio-field textarea,.bio-field select{border-radius:2px!important;box-shadow:none!important;}
+.f-in:focus{box-shadow:none;}
+.bio-pub-badge{border-radius:2px;}
+.bio-toggle-track{border-radius:2px;}
+button:active{transform:none!important;}
 `
 
   if (!user) return (
@@ -1003,7 +1035,7 @@ button:focus-visible,a:focus-visible { outline:2px solid #D45A3F; outline-offset
           </div>
           <div className="topbar-right">
             <button className="theme-btn" onClick={() => setDark(v => !v)} aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'}>
-              {dark ? <IcoSun s={16} c="var(--ink)"/> : <IcoMoon s={16} c="var(--ink)"/>}
+              <IcoContrast s={17} c="var(--ink)"/>
             </button>
             <button className="lang-btn" onClick={() => setLang(l => l === 'en' ? 'ar' : 'en')} aria-label="Switch language">
               {lang === 'en' ? 'العربية' : 'EN'}

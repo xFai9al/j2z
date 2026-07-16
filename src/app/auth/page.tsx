@@ -291,6 +291,37 @@ body{background:var(--paper);color:var(--ink);font-family:'Space Grotesk','Tajaw
 .right-tagline strong{color:var(--coral-light);font-style:normal;}
 button,a{touch-action:manipulation;}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:0.01ms!important;transition-duration:0.01ms!important;}}
+
+/* slop.md pass */
+body{font-family:system-ui,-apple-system,'Segoe UI','Tajawal',sans-serif;background:#F7F0E8;}
+.auth-wrap{grid-template-columns:minmax(420px,.9fr) 1.1fr;}
+.left-panel{background:#F7F0E8;max-width:620px;padding:30px 46px;}
+.form-area{animation:none;max-width:410px;}
+.lang-btn{background:transparent;border:0;border-radius:0;}
+.oauth-btn,.field-input,.submit-btn,.resend-btn,.error-msg{border-radius:3px;box-shadow:none;}
+.oauth-btn:hover{transform:none;box-shadow:none;background:#EEE4D9;border-color:#BFAEA0;}
+.oauth-btn.email-btn,.submit-btn{background:var(--ink);border-color:var(--ink);}
+.oauth-btn.email-btn:hover,.submit-btn:hover{background:#493D34;border-color:#493D34;transform:none;}
+.field-input{background:#FFFDF9;border:0;border-bottom:2px solid #BFAEA0;padding:15px 4px;}
+.field-input:focus{border-color:var(--ink);box-shadow:none;}
+.divider::before,.divider::after{background:rgba(47,42,36,.16);}
+.right-panel{background:#2F2A24;padding:64px clamp(48px,7vw,110px);}
+.right-panel::before{content:'J2Z / ACCESS';top:auto;right:38px;bottom:28px;width:auto;height:auto;background:none;color:rgba(255,255,255,.18);font:600 11px/1 system-ui;letter-spacing:.22em;}
+.right-inner{max-width:620px;}
+.right-logo{margin-bottom:70px;}
+.right-headline{font-size:clamp(42px,5vw,72px);line-height:.92;letter-spacing:-.025em;margin-bottom:58px;max-width:600px;}
+.right-headline em{color:#D89684;}
+.benefit-list{display:grid;grid-template-columns:1fr 1fr;gap:34px 48px;position:relative;}
+.benefit-list::before{content:'';position:absolute;left:-28px;top:0;bottom:0;width:4px;background:#9F4936;clip-path:polygon(0 0,100% 8px,100% calc(100% - 8px),0 100%);}
+.benefit-item{gap:12px;}
+.benefit-icon{width:28px;height:28px;border:0;border-radius:0;background:transparent;justify-content:flex-start;}
+.benefit-icon svg{width:24px;height:24px;stroke:#D8CCC0;}
+.benefit-text h4{font-size:16px;}
+.benefit-text p{color:#B8AAA0;}
+.right-tagline{border:0;padding:0;margin-top:62px;color:#B8AAA0;}
+.verify-icon{background:transparent;border-radius:0;}
+.verify-email-chip{border-radius:2px;}
+@media(max-width:800px){.left-panel{padding:22px 20px}.auth-wrap{grid-template-columns:1fr}.right-panel{display:none}}
 `
 
   return (

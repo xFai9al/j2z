@@ -33,6 +33,7 @@ body{min-height:100dvh;font-family:'Space Grotesk','Tajawal',sans-serif;-webkit-
 .btn{padding:12px 24px;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;text-decoration:none;transition:all .18s;touch-action:manipulation;border:none;min-height:48px;display:inline-flex;align-items:center;}
 .btn-retry{background:#E8765C;color:white;}
 .btn-retry:hover{background:#D45A3F;transform:translateY(-1px);}
+.btn-retry:hover{transform:none;}
 .btn-home{background:white;color:#2F2A24;border:1.5px solid #E8E2D6;}
 .btn-home:hover{border-color:#E8765C;color:#D45A3F;}
 button,a{touch-action:manipulation;}

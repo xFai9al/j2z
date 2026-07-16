@@ -37,6 +37,7 @@ html{scroll-behavior:smooth;}
 .actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;}
 .btn-home{padding:12px 24px;background:#E8765C;color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;text-decoration:none;transition:all .18s;touch-action:manipulation;min-height:48px;display:inline-flex;align-items:center;}
 .btn-home:hover{background:#D45A3F;transform:translateY(-1px);}
+.btn-home:hover{transform:none;}
 .btn-back{padding:12px 24px;background:white;color:#2F2A24;border:1.5px solid #E8E2D6;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;text-decoration:none;transition:all .18s;touch-action:manipulation;min-height:48px;display:inline-flex;align-items:center;}
 .btn-back:hover{border-color:#E8765C;color:#D45A3F;}
 button,a{touch-action:manipulation;}

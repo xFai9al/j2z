@@ -285,6 +285,17 @@ a { text-decoration: none; color: inherit; }
 .forbidden-link:hover { text-decoration: underline; }
 .no-data { text-align: center; padding: 24px; font-size: 13px; color: var(--muted); }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }
+
+/* slop.md pass */
+body{font-family:system-ui,-apple-system,'Segoe UI','Tajawal',sans-serif;}
+.stat-card::before{display:none!important;}
+.stat-card,.panel,.table-wrap,.bl-row{box-shadow:none!important;border-radius:3px!important;}
+.stat-card{border:0!important;border-top:2px solid var(--border)!important;}
+.stat-card:hover{transform:none!important;box-shadow:none!important;}
+.bl-input,.bl-select,.bl-add,.bl-del{border-radius:2px;box-shadow:none!important;}
+.bl-add{background:var(--ink);}
+.bl-add:hover{background:var(--muted2);transform:none;}
+.td-type{border-radius:2px;background:transparent;padding:0;}
 `
 
   if (loading) return (
