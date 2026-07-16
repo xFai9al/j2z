@@ -11,6 +11,9 @@ export async function POST(req: NextRequest) {
   if (typeof title !== 'string' || typeof url !== 'string' || !title.trim() || !url.trim()) {
     return NextResponse.json({ error: 'Title and URL required' }, { status: 400 })
   }
+  if (title.trim().length > 100 || url.trim().length > 2048) {
+    return NextResponse.json({ error: 'Title or URL is too long' }, { status: 400 })
+  }
   if (!/^https?:\/\/.+/.test(url.trim())) {
     return NextResponse.json({ error: 'URL must start with http:// or https://' }, { status: 400 })
   }

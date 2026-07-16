@@ -140,7 +140,7 @@ export default async function BioPage({ params }: { params: Promise<{ username: 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
 
-body {
+.bio-shell {
   min-height: 100dvh;
   font-family: ${fonts.body};
   -webkit-font-smoothing: antialiased;
@@ -267,7 +267,7 @@ ${bgImage ? `.bg-overlay {
   text-decoration: none;
   transition: opacity .18s ease, transform .18s ease;
   cursor: pointer; touch-action: manipulation; font-family: inherit;
-  opacity: 0; animation: linkIn .35s ease forwards;
+  opacity: 1; animation: linkIn .35s ease forwards;
   /* button style applied inline */
 }
 .link-favicon { width: 18px; height: 18px; flex-shrink: 0; border-radius: 4px; }
@@ -329,13 +329,8 @@ ${(btnStyle === 'glass') ? `.link-btn, .featured-link { backdrop-filter: blur(12
 `
 
   return (
-    <html lang={lang} dir={lang === 'ar' ? 'rtl' : 'ltr'}>
-      <head>
-        <meta charSet="UTF-8"/>
-        <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <main className="bio-shell" lang={lang} dir={lang === 'ar' ? 'rtl' : 'ltr'}>
         <style dangerouslySetInnerHTML={{__html: css}} suppressHydrationWarning/>
-      </head>
-      <body>
         {bgImage && <div className="bg-overlay" aria-hidden="true"/>}
 
         <a className="brand-strip" href="/" aria-label="J2z home">
@@ -385,7 +380,6 @@ ${(btnStyle === 'glass') ? `.link-btn, .featured-link { backdrop-filter: blur(12
                     style={{
                       background: plat.color,
                       animationDelay: `${0.2 + i * 0.04}s`,
-                      opacity: 0,
                       animation: `linkIn .35s ease ${0.2 + i * 0.04}s forwards`,
                     }}
                   >
@@ -451,7 +445,6 @@ ${(btnStyle === 'glass') ? `.link-btn, .featured-link { backdrop-filter: blur(12
             </a>
           </div>
         </div>
-      </body>
-    </html>
+    </main>
   )
 }

@@ -1,13 +1,6 @@
-import { createServerClient } from '@supabase/ssr'
+import { createAdminClient } from '@/lib/supabase/admin'
+import { claimRateLimit } from '@/lib/rate-limit'
 import { NextRequest, NextResponse } from 'next/server'
-
-function makeServiceClient() {
-  return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co',
-    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key',
-    { cookies: { getAll: () => [], setAll: () => {} } }
-  )
-}
 
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null)
@@ -18,7 +11,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Valid email required' }, { status: 400 })
   }
 
-  const service = makeServiceClient()
+  const service = createAdminClient()
+  const allowed = await claimRateLimit(req, service, 'bio_subscribe', 5, 3_600).catch(() => false)
+  if (!allowed) return NextResponse.json({ error: 'Too many attempts' }, { status: 429 })
   const { data: page } = await service
     .from('bio_pages')
     .select('id, collect_emails, is_published')

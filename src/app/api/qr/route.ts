@@ -1,16 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
-import { createServerClient } from '@supabase/ssr'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { generateSlug, isValidUrl, ensureHttps } from '@/lib/utils'
 import { isUrlBlocked } from '@/lib/blocklist'
 import { NextRequest, NextResponse } from 'next/server'
-
-function makeServiceClient() {
-  return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co',
-    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key',
-    { cookies: { getAll: () => [], setAll: () => {} } }
-  )
-}
 
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null)
@@ -23,13 +15,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid URL' }, { status: 400 })
   }
 
-  const anonClient = createClient()
+  const anonClient = await createClient()
   const { data: sessionData } = await anonClient.auth.getUser()
   if (!sessionData?.user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const service = makeServiceClient()
+  const service = createAdminClient()
 
   if (await isUrlBlocked(originalUrl, service)) {
     return NextResponse.json({ error: 'This URL is not allowed' }, { status: 403 })

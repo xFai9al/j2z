@@ -23,7 +23,7 @@ const css = `
 @import url('https://fonts.googleapis.com/css2?family=Cal+Sans&family=Space+Grotesk:wght@400;500;600;700&family=Tajawal:wght@500;700;800&display=swap');
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 html{scroll-behavior:smooth;}
-body{min-height:100dvh;font-family:'Space Grotesk','Tajawal',sans-serif;-webkit-font-smoothing:antialiased;background:#FBFAF7;color:#2F2A24;}
+.nf-shell{min-height:100dvh;font-family:'Space Grotesk','Tajawal',sans-serif;-webkit-font-smoothing:antialiased;background:#FBFAF7;color:#2F2A24;}
 .nf-wrap{min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;position:relative;}
 .nf-lang{position:absolute;top:20px;right:20px;background:#F5F2EC;border:1px solid #E8E2D6;padding:0 12px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;color:#2F2A24;font-family:inherit;min-height:40px;display:inline-flex;align-items:center;}
 [dir=rtl] .nf-lang{right:auto;left:20px;}
@@ -49,14 +49,9 @@ export default function NotFound() {
   const dir = lang === 'ar' ? 'rtl' : 'ltr'
 
   return (
-    <html lang={lang} dir={dir}>
-      <head>
-        <meta charSet="UTF-8"/>
-        <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <main className="nf-shell" lang={lang} dir={dir}>
         <title>Page not found — J2z</title>
         <style dangerouslySetInnerHTML={{__html: css}} suppressHydrationWarning/>
-      </head>
-      <body>
         <div className="nf-wrap" dir={dir}>
           <button className="nf-lang" onClick={() => setLang(lang === 'en' ? 'ar' : 'en')} aria-label="Switch language">
             {t.lang_toggle}
@@ -83,7 +78,6 @@ export default function NotFound() {
             <Link className="btn-back" href="/dashboard">{t.btn_dashboard}</Link>
           </div>
         </div>
-      </body>
-    </html>
+    </main>
   )
 }

@@ -90,6 +90,12 @@ CREATE TABLE IF NOT EXISTS bio_pages (
   theme            TEXT DEFAULT 'default',
   background_color TEXT DEFAULT '#2F2A24',
   accent_color     TEXT DEFAULT '#E8765C',
+  button_style     TEXT DEFAULT 'glass',
+  button_color     TEXT,
+  button_text_color TEXT,
+  bg_image_url     TEXT,
+  font_pairing     TEXT DEFAULT 'default',
+  collect_emails   BOOLEAN DEFAULT FALSE,
   is_published     BOOLEAN DEFAULT FALSE,
   created_at       TIMESTAMPTZ DEFAULT NOW(),
   updated_at       TIMESTAMPTZ DEFAULT NOW(),
@@ -106,8 +112,11 @@ CREATE TABLE IF NOT EXISTS bio_links (
   title       TEXT NOT NULL,
   url         TEXT NOT NULL,
   icon        TEXT,
+  platform    TEXT,
   sort_order  INT DEFAULT 0,
   is_active   BOOLEAN DEFAULT TRUE,
+  is_featured BOOLEAN DEFAULT FALSE,
+  clicks      BIGINT DEFAULT 0 NOT NULL,
   created_at  TIMESTAMPTZ DEFAULT NOW(),
   updated_at  TIMESTAMPTZ DEFAULT NOW(),
   CONSTRAINT bio_link_url_format CHECK (url ~* '^https?://.+')
@@ -138,12 +147,38 @@ CREATE INDEX IF NOT EXISTS idx_clicks_date ON clicks(clicked_at DESC);
 
 -- ── Anonymous Usage ───────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS anon_usage (
-  ip_hash       TEXT PRIMARY KEY,
+  ip_hash       TEXT,
+  usage_date    DATE NOT NULL DEFAULT CURRENT_DATE,
   links_created INT DEFAULT 0,
   qrs_created   INT DEFAULT 0,
   first_seen    TIMESTAMPTZ DEFAULT NOW(),
-  last_seen     TIMESTAMPTZ DEFAULT NOW()
+  last_seen     TIMESTAMPTZ DEFAULT NOW(),
+  PRIMARY KEY (ip_hash, usage_date)
 );
+
+CREATE TABLE IF NOT EXISTS admin_users (
+  id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
+  added_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS bio_subscribers (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  bio_page_id UUID REFERENCES bio_pages(id) ON DELETE CASCADE NOT NULL,
+  email TEXT NOT NULL CHECK (email ~* '^[^@\s]+@[^@\s]+\.[^@\s]+$'),
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE (bio_page_id, email)
+);
+CREATE INDEX IF NOT EXISTS idx_bio_subscribers_page ON bio_subscribers(bio_page_id);
+
+CREATE TABLE IF NOT EXISTS api_rate_limits (
+  key_hash TEXT NOT NULL,
+  action TEXT NOT NULL,
+  window_start TIMESTAMPTZ NOT NULL,
+  request_count INTEGER NOT NULL DEFAULT 1 CHECK (request_count > 0),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (key_hash, action, window_start)
+);
+CREATE INDEX IF NOT EXISTS idx_api_rate_limits_updated ON api_rate_limits(updated_at);
 
 
 -- ── URL Blocklist ─────────────────────────────────────────────────────────────
@@ -170,15 +205,12 @@ ON CONFLICT (pattern) DO NOTHING;
 -- ── Row Level Security ────────────────────────────────────────────────────────
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "profiles_own" ON profiles FOR ALL USING (auth.uid() = id);
-CREATE POLICY "profiles_public_username" ON profiles FOR SELECT USING (username IS NOT NULL);
 
 ALTER TABLE links ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "links_own" ON links FOR ALL USING (auth.uid() = user_id);
-CREATE POLICY "links_public_active" ON links FOR SELECT USING (is_active = true);
 
 ALTER TABLE qr_codes ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "qr_own" ON qr_codes FOR ALL USING (auth.uid() = user_id);
-CREATE POLICY "qr_public_active" ON qr_codes FOR SELECT USING (is_active = true);
 
 ALTER TABLE bio_pages ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "bio_pages_own" ON bio_pages FOR ALL USING (auth.uid() = user_id);
@@ -205,6 +237,13 @@ CREATE POLICY "clicks_owner_view" ON clicks FOR SELECT USING (
 );
 
 ALTER TABLE anon_usage ENABLE ROW LEVEL SECURITY;
+ALTER TABLE admin_users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE api_rate_limits ENABLE ROW LEVEL SECURITY;
+
+ALTER TABLE bio_subscribers ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "bio_subscribers_owner_view" ON bio_subscribers FOR SELECT USING (
+  EXISTS (SELECT 1 FROM bio_pages WHERE bio_pages.id = bio_subscribers.bio_page_id AND bio_pages.user_id = auth.uid())
+);
 
 ALTER TABLE url_blocklist ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "blocklist_read" ON url_blocklist FOR SELECT USING (true);
@@ -223,15 +262,15 @@ CREATE TRIGGER update_bio_pages_updated_at BEFORE UPDATE ON bio_pages FOR EACH R
 
 
 -- ── Analytics Views ───────────────────────────────────────────────────────────
-CREATE OR REPLACE VIEW daily_clicks AS
+CREATE OR REPLACE VIEW daily_clicks WITH (security_invoker = true) AS
 SELECT resource_type, resource_id, DATE_TRUNC('day', clicked_at) AS day, COUNT(*) AS click_count, COUNT(DISTINCT ip_hash) AS unique_clicks
 FROM clicks GROUP BY resource_type, resource_id, DATE_TRUNC('day', clicked_at);
 
-CREATE OR REPLACE VIEW clicks_by_country AS
+CREATE OR REPLACE VIEW clicks_by_country WITH (security_invoker = true) AS
 SELECT resource_type, resource_id, country, COUNT(*) AS click_count
 FROM clicks WHERE country IS NOT NULL GROUP BY resource_type, resource_id, country ORDER BY click_count DESC;
 
-CREATE OR REPLACE VIEW clicks_by_device AS
+CREATE OR REPLACE VIEW clicks_by_device WITH (security_invoker = true) AS
 SELECT resource_type, resource_id, device_type, COUNT(*) AS click_count
 FROM clicks WHERE device_type IS NOT NULL GROUP BY resource_type, resource_id, device_type;
 
@@ -267,9 +306,42 @@ BEGIN
     UPDATE qr_codes SET scans = scans + 1 WHERE id = p_resource_id;
   END IF;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp;
 
-GRANT EXECUTE ON FUNCTION track_click(TEXT, UUID, TEXT, TEXT, TEXT, TEXT) TO anon, authenticated;
+REVOKE ALL ON FUNCTION track_click(TEXT, UUID, TEXT, TEXT, TEXT, TEXT) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION track_click(TEXT, UUID, TEXT, TEXT, TEXT, TEXT) TO service_role;
+
+CREATE OR REPLACE FUNCTION increment_bio_link_clicks(p_id UUID)
+RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp AS $$
+BEGIN
+  UPDATE bio_links bl SET clicks = bl.clicks + 1
+  WHERE bl.id = p_id AND bl.is_active = TRUE
+    AND EXISTS (SELECT 1 FROM bio_pages bp WHERE bp.id = bl.bio_page_id AND bp.is_published = TRUE);
+END;
+$$;
+REVOKE ALL ON FUNCTION increment_bio_link_clicks(UUID) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION increment_bio_link_clicks(UUID) TO service_role;
+
+CREATE OR REPLACE FUNCTION claim_rate_limit(p_key TEXT, p_action TEXT, p_limit INTEGER, p_window_seconds INTEGER)
+RETURNS BOOLEAN LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp AS $$
+DECLARE v_window TIMESTAMPTZ; v_allowed BOOLEAN := FALSE;
+BEGIN
+  IF p_key IS NULL OR p_action IS NULL OR p_limit < 1 OR p_window_seconds < 1 THEN RETURN FALSE; END IF;
+  v_window := to_timestamp(floor(extract(epoch FROM clock_timestamp()) / p_window_seconds) * p_window_seconds);
+  INSERT INTO api_rate_limits (key_hash, action, window_start, request_count)
+  VALUES (p_key, left(p_action, 160), v_window, 1)
+  ON CONFLICT (key_hash, action, window_start) DO UPDATE
+    SET request_count = api_rate_limits.request_count + 1, updated_at = NOW()
+    WHERE api_rate_limits.request_count < p_limit
+  RETURNING TRUE INTO v_allowed;
+  RETURN COALESCE(v_allowed, FALSE);
+END;
+$$;
+REVOKE ALL ON FUNCTION claim_rate_limit(TEXT, TEXT, INTEGER, INTEGER) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION claim_rate_limit(TEXT, TEXT, INTEGER, INTEGER) TO service_role;
+
+REVOKE ALL ON daily_clicks, clicks_by_country, clicks_by_device FROM anon, authenticated;
+REVOKE ALL ON api_rate_limits FROM anon, authenticated;
 
 
 -- ── Realtime ─────────────────────────────────────────────────────────────────

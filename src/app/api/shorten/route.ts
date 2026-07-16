@@ -1,18 +1,10 @@
 import { createClient } from '@/lib/supabase/server'
-import { createServerClient } from '@supabase/ssr'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { generateSlug, isValidUrl, ensureHttps } from '@/lib/utils'
 import { checkAnonLinkLimit } from '@/lib/anon-limit'
 import { isUrlBlocked } from '@/lib/blocklist'
 import { RESERVED } from '@/lib/constants'
 import { NextRequest, NextResponse } from 'next/server'
-
-function makeServiceClient() {
-  return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co',
-    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key',
-    { cookies: { getAll: () => [], setAll: () => {} } }
-  )
-}
 
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null)
@@ -26,7 +18,7 @@ export async function POST(req: NextRequest) {
   }
 
   const rawSlug = (body.slug ?? body.customSlug ?? '').trim().replace(/[^a-zA-Z0-9-_]/g, '')
-  const service = makeServiceClient()
+  const service = createAdminClient()
 
   if (await isUrlBlocked(originalUrl, service)) {
     return NextResponse.json({ error: 'This URL is not allowed' }, { status: 403 })
@@ -50,12 +42,12 @@ export async function POST(req: NextRequest) {
   const slug = rawSlug || generateSlug()
 
   // Identify current user (optional — anon users get user_id = null)
-  const anonClient = createClient()
+  const anonClient = await createClient()
   const { data: sessionData } = await anonClient.auth.getUser()
   const userId = sessionData?.user?.id ?? null
 
   if (!userId) {
-    const allowed = await checkAnonLinkLimit(req, service)
+    const allowed = await checkAnonLinkLimit(req, service).catch(() => false)
     if (!allowed) {
       return NextResponse.json({ error: 'Daily limit reached — sign up for unlimited links' }, { status: 429 })
     }

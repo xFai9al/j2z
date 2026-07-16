@@ -16,12 +16,14 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     if (typeof title !== 'string' || !title.trim()) {
       return NextResponse.json({ error: 'Title required' }, { status: 400 })
     }
+    if (title.trim().length > 100) return NextResponse.json({ error: 'Title is too long' }, { status: 400 })
     updates.title = title.trim()
   }
   if (url !== undefined) {
     if (typeof url !== 'string' || !/^https?:\/\/.+/.test(url.trim())) {
       return NextResponse.json({ error: 'URL must start with http:// or https://' }, { status: 400 })
     }
+    if (url.trim().length > 2048) return NextResponse.json({ error: 'URL is too long' }, { status: 400 })
     if (await isUrlBlocked(url.trim(), sb)) {
       return NextResponse.json({ error: 'This URL is not allowed' }, { status: 403 })
     }

@@ -386,7 +386,7 @@ export default function Dashboard() {
         fetchAnalytics()
       }
     })
-  }, [])
+  }, [fetchAnalytics, fetchLinks, fetchQrs, router])
 
   const drawQR = useCallback(async (canvas: HTMLCanvasElement, url: string) => {
     if (!canvas) return
@@ -463,13 +463,23 @@ export default function Dashboard() {
   }
 
   const deleteLink = async (id: string) => {
+    const previous = links
     setLinks(p => p.filter(x => x.id !== id))
-    await fetch(`/api/links/${id}`, { method: 'DELETE' })
+    const res = await fetch(`/api/links/${id}`, { method: 'DELETE' })
+    if (!res.ok) {
+      setLinks(previous)
+      window.alert('Failed to delete link')
+    }
   }
 
   const deleteQr = async (id: string) => {
+    const previous = qrs
     setQrs(p => p.filter(x => x.id !== id))
-    await fetch(`/api/qr/${id}`, { method: 'DELETE' })
+    const res = await fetch(`/api/qr/${id}`, { method: 'DELETE' })
+    if (!res.ok) {
+      setQrs(previous)
+      window.alert('Failed to delete QR code')
+    }
   }
 
   const saveQrDest = async (id: string) => {
@@ -477,11 +487,15 @@ export default function Dashboard() {
     setEditQrId(null)
     const dest = editDest
     setEditDest('')
-    await fetch(`/api/qr/${id}`, {
+    const res = await fetch(`/api/qr/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ destination_url: dest }),
     })
+    if (!res.ok) {
+      await fetchQrs(user!.id)
+      window.alert('Failed to update QR code')
+    }
   }
 
   const downloadQR = (id: string, slug: string) => {
@@ -597,19 +611,20 @@ export default function Dashboard() {
 
   const addSocialLink = async () => {
     if (!newSocialPlatform || !newSocialUrl.trim()) return
-    const plat = PLATFORMS[newSocialPlatform]
+    const platform = newSocialPlatform
+    const plat = PLATFORMS[platform]
     if (!plat) return
     const url = newSocialUrl.trim()
     if (!/^https?:\/\/.+/.test(url)) return
     setSocialAdding(true)
     const tempId = `temp-${Date.now()}`
-    setBioLinks(p => [...p, { id: tempId, title: plat.name, url, sort_order: Date.now(), platform: newSocialPlatform }])
+    setBioLinks(p => [...p, { id: tempId, title: plat.name, url, sort_order: Date.now(), platform }])
     setNewSocialPlatform('')
     setNewSocialUrl('')
     const res = await fetch('/api/bio/links', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title: plat.name, url, platform: newSocialPlatform }),
+      body: JSON.stringify({ title: plat.name, url, platform }),
     })
     if (res.ok) {
       const data = await res.json()
@@ -631,8 +646,13 @@ export default function Dashboard() {
   }
 
   const deleteBioLink = async (id: string) => {
+    const previous = bioLinks
     setBioLinks(p => p.filter(l => l.id !== id))
-    await fetch(`/api/bio/links/${id}`, { method: 'DELETE' })
+    const res = await fetch(`/api/bio/links/${id}`, { method: 'DELETE' })
+    if (!res.ok) {
+      setBioLinks(previous)
+      window.alert('Failed to delete bio link')
+    }
   }
 
   const saveBioLink = async (id: string) => {
@@ -691,11 +711,16 @@ export default function Dashboard() {
 
   const saveSettings = async () => {
     setSettingSaving(true)
-    await fetch('/api/settings', {
+    const res = await fetch('/api/settings', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ display_name: settingName }),
     })
+    if (!res.ok) {
+      setSettingSaving(false)
+      window.alert('Failed to save settings')
+      return
+    }
     setSaved(true)
     setSettingSaving(false)
     setTimeout(() => setSaved(false), 2000)
@@ -703,10 +728,14 @@ export default function Dashboard() {
 
   const deleteAccount = async () => {
     const msg = lang === 'en'
-      ? 'Delete your account? All data will be deactivated. This cannot be undone.'
+      ? 'Permanently delete your account and all data? This cannot be undone.'
       : 'حذف حسابك؟ سيتم إلغاء تفعيل جميع بياناتك. لا يمكن التراجع.'
     if (!window.confirm(msg)) return
-    await fetch('/api/account', { method: 'DELETE' })
+    const res = await fetch('/api/account', { method: 'DELETE' })
+    if (!res.ok) {
+      window.alert('Failed to delete account')
+      return
+    }
     router.replace('/auth')
   }
 

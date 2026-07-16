@@ -44,7 +44,7 @@ const DEVICE_LABELS: Record<string, { en: string; ar: string }> = {
 }
 
 export async function GET() {
-  const sb = createClient()
+  const sb = await createClient()
   const { data: { user } } = await sb.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
